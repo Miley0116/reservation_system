@@ -3,6 +3,8 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from .models import Administrator
 
 def welcome(request):
@@ -17,17 +19,30 @@ def register_view(request):
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
         
-        # バリデーション
+        # パスワード一致確認
         if password1 != password2:
             messages.error(request, 'パスワードが一致しません')
             return render(request, 'main/register.html')
         
+        # ユーザー名の重複確認
         if User.objects.filter(username=username).exists():
             messages.error(request, 'このユーザー名は既に使用されています')
             return render(request, 'main/register.html')
         
+        # メールアドレスの重複確認
         if User.objects.filter(email=email).exists():
             messages.error(request, 'このメールアドレスは既に使用されています')
+            return render(request, 'main/register.html')
+        
+        # パスワードポリシーのバリデーション
+        try:
+            # 仮のユーザーオブジェクトを作成してバリデーション
+            temp_user = User(username=username, email=email)
+            validate_password(password1, temp_user)
+        except ValidationError as e:
+            # エラーメッセージを日本語で表示
+            for error in e.messages:
+                messages.error(request, error)
             return render(request, 'main/register.html')
         
         # ユーザー作成

@@ -9,11 +9,17 @@
 </p>
 
 <a href="{% url 'login' %}" style="text-decoration: none;">
-    <button>ログイン</button>
+    <button>管理者ログイン</button>
 </a>
 
 <div class="link">
-    <p>アカウントをお持ちでない方</p>
-    <a href="{% url 'register' %}">管理者登録はこちら</a>
+    <p>管理者アカウントをお持ちでない方</p>
+    <a href="{% url 'register' %}">管理者アカウント登録</a>
+</div>
+
+<div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+    <p style="text-align: center; color: #666; font-size: 14px;">
+        ※ 一般ユーザー向けの予約機能は今後実装予定
+    </p>
 </div>
 {% endblock %}
