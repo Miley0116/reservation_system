@@ -1,0 +1,19 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Welcome - 予約管理システム{% endblock %}
+
+{% block content %}
+<h1>🎉 予約管理システム</h1>
+<p style="text-align: center; color: #666; margin-bottom: 30px;">
+    システムへようこそ！
+</p>
+
+<a href="{% url 'login' %}" style="text-decoration: none;">
+    <button>ログイン</button>
+</a>
+
+<div class="link">
+    <p>アカウントをお持ちでない方</p>
+    <a href="{% url 'register' %}">管理者登録はこちら</a>
+</div>
+{% endblock %}

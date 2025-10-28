@@ -1,0 +1,26 @@
+{% extends 'main/base.html' %}
+
+{% block title %}ログイン{% endblock %}
+
+{% block content %}
+<h2>ログイン</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="username">ユーザー名</label>
+        <input type="text" id="username" name="username" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="password">パスワード</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    
+    <button type="submit">ログイン</button>
+</form>
+
+<div class="link">
+    <a href="{% url 'register' %}">管理者登録はこちら</a>
+</div>
+{% endblock %}
