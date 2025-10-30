@@ -1,0 +1,46 @@
+{% extends 'main/base.html' %}
+
+{% block title %}顧客編集{% endblock %}
+
+{% block content %}
+<h2>顧客編集</h2>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="form-group">
+        <label for="name">顧客名 <span style="color: red;">*</span></label>
+        <input type="text" id="name" name="name" value="{{ customer.name }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="phone_number">電話番号 <span style="color: red;">*</span></label>
+        <input type="text" id="phone_number" name="phone_number" value="{{ customer.phone_number }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="memo">メモ</label>
+        <textarea id="memo" name="memo" rows="4" 
+                  style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;">{{ customer.memo }}</textarea>
+    </div>
+    
+    <div class="form-group">
+        <label for="last_visit_date">最終来店日</label>
+        <input type="date" id="last_visit_date" name="last_visit_date" 
+               value="{{ customer.last_visit_date|date:'Y-m-d' }}">
+    </div>
+    
+    <button type="submit">更新</button>
+    <a href="{% url 'customer-detail' customer.id %}" style="text-decoration: none;">
+        <button type="button" style="background: #6c757d; margin-top: 10px;">キャンセル</button>
+    </a>
+</form>
+
+<!-- 削除ボタン -->
+<form method="post" action="{% url 'customer-delete' customer.id %}" 
+      onsubmit="return confirm('本当にこの顧客を削除しますか？');" 
+      style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+    {% csrf_token %}
+    <button type="submit" style="background: #dc3545;">顧客を削除</button>
+</form>
+{% endblock %}

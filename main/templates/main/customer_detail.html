@@ -1,0 +1,42 @@
+{% extends 'main/base.html' %}
+
+{% block title %}顧客詳細{% endblock %}
+
+{% block content %}
+<h2>顧客詳細</h2>
+
+<div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+    <div style="margin-bottom: 15px;">
+        <strong style="color: #555;">顧客名:</strong>
+        <p style="margin: 5px 0;">{{ customer.name }}</p>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <strong style="color: #555;">電話番号:</strong>
+        <p style="margin: 5px 0;">{{ customer.phone_number }}</p>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <strong style="color: #555;">メモ:</strong>
+        <p style="margin: 5px 0;">{{ customer.memo|default:"なし" }}</p>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <strong style="color: #555;">最終来店日:</strong>
+        <p style="margin: 5px 0;">{{ customer.last_visit_date|default:"未設定" }}</p>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <strong style="color: #555;">登録日時:</strong>
+        <p style="margin: 5px 0;">{{ customer.created_at|date:"Y年m月d日 H:i" }}</p>
+    </div>
+</div>
+
+<a href="{% url 'customer-edit' customer.id %}" style="text-decoration: none;">
+    <button style="background: #28a745;">編集</button>
+</a>
+
+<a href="{% url 'customer-list' %}" style="text-decoration: none;">
+    <button style="background: #6c757d; margin-top: 10px;">一覧に戻る</button>
+</a>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'main/base.html' %}
+
+{% block title %}顧客一覧{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>顧客一覧</h2>
+    <a href="{% url 'admin-home' %}" style="text-decoration: none; color: #667eea;">← ホームに戻る</a>
+</div>
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'customer-add' %}" style="text-decoration: none;">
+        <button style="width: auto; padding: 10px 20px;">+ 新規登録</button>
+    </a>
+</div>
+
+<!-- 検索フォーム -->
+<form method="get" style="margin-bottom: 20px;">
+    <div style="display: flex; gap: 10px;">
+        <input type="text" name="search" placeholder="顧客名または電話番号で検索" 
+               value="{{ search_query }}" 
+               style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+        <button type="submit" style="width: auto; padding: 10px 20px;">検索</button>
+        {% if search_query %}
+        <a href="{% url 'customer-list' %}" style="text-decoration: none;">
+            <button type="button" style="width: auto; padding: 10px 20px; background: #6c757d;">クリア</button>
+        </a>
+        {% endif %}
+    </div>
+</form>
+
+{% if customers %}
+<div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; background: white;">
+        <thead>
+            <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                <th style="padding: 12px; text-align: left;">顧客名</th>
+                <th style="padding: 12px; text-align: left;">電話番号</th>
+                <th style="padding: 12px; text-align: left;">最終来店日</th>
+                <th style="padding: 12px; text-align: center;">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr style="border-bottom: 1px solid #dee2e6;">
+                <td style="padding: 12px;">{{ customer.name }}</td>
+                <td style="padding: 12px;">{{ customer.phone_number }}</td>
+                <td style="padding: 12px;">{{ customer.last_visit_date|default:"未設定" }}</td>
+                <td style="padding: 12px; text-align: center;">
+                    <a href="{% url 'customer-detail' customer.id %}" 
+                       style="color: #667eea; text-decoration: none; margin-right: 10px;">詳細</a>
+                    <a href="{% url 'customer-edit' customer.id %}" 
+                       style="color: #28a745; text-decoration: none;">編集</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p style="text-align: center; color: #666; margin-top: 40px;">
+    {% if search_query %}
+    「{{ search_query }}」に一致する顧客が見つかりませんでした。
+    {% else %}
+    登録されている顧客はまだありません。
+    {% endif %}
+</p>
+{% endif %}
+{% endblock %}
