@@ -93,20 +93,31 @@ def logout_view(request):
 @login_required(login_url='login')
 def customer_list(request):
     """顧客一覧"""
-    search_query = request.GET.get('search', '')
+    search_name = request.GET.get('search_name', '')
+    search_phone = request.GET.get('search_phone', '')
+    search_email = request.GET.get('search_email', '')
     
-    if search_query:
-        customers = Customer.objects.filter(
-            name__icontains=search_query
-        ) | Customer.objects.filter(
-            phone_number__icontains=search_query
-        )
-    else:
-        customers = Customer.objects.all().order_by('-created_at')
+    customers = Customer.objects.all()
+    
+    # 顧客名で絞り込み
+    if search_name:
+        customers = customers.filter(name__icontains=search_name)
+    
+    # 電話番号で絞り込み
+    if search_phone:
+        customers = customers.filter(phone_number__icontains=search_phone)
+    
+    # メールアドレスで絞り込み
+    if search_email:
+        customers = customers.filter(email__icontains=search_email)
+    
+    customers = customers.order_by('-created_at')
     
     return render(request, 'main/customer_list.html', {
         'customers': customers,
-        'search_query': search_query,
+        'search_name': search_name,
+        'search_phone': search_phone,
+        'search_email': search_email,
     })
 
 @login_required(login_url='login')
@@ -115,19 +126,29 @@ def customer_add(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         phone_number = request.POST.get('phone_number')
+        email = request.POST.get('email')
         memo = request.POST.get('memo', '')
         last_visit_date = request.POST.get('last_visit_date')
         
-        # 顧客作成
-        customer = Customer.objects.create(
-            name=name,
-            phone_number=phone_number,
-            memo=memo,
-            last_visit_date=last_visit_date if last_visit_date else None
-        )
+        # メールアドレスの重複チェック
+        if Customer.objects.filter(email=email).exists():
+            messages.error(request, 'このメールアドレスは既に登録されています')
+            return render(request, 'main/customer_add.html')
         
-        messages.success(request, f'顧客「{name}」を登録しました')
-        return redirect('customer-list')
+        try:
+            # 顧客作成
+            customer = Customer.objects.create(
+                name=name,
+                phone_number=phone_number,
+                email=email,
+                memo=memo,
+                last_visit_date=last_visit_date if last_visit_date else None
+            )
+            messages.success(request, f'顧客「{name}」を登録しました')
+            return redirect('customer-list')
+        except Exception as e:
+            messages.error(request, f'登録に失敗しました: {str(e)}')
+            return render(request, 'main/customer_add.html')
     
     return render(request, 'main/customer_add.html')
 
@@ -154,19 +175,29 @@ def customer_edit(request, pk):
         return redirect('customer-list')
     
     if request.method == 'POST':
-        customer.name = request.POST.get('name')
-        customer.phone_number = request.POST.get('phone_number')
-        customer.memo = request.POST.get('memo', '')
-        last_visit_date = request.POST.get('last_visit_date')
-        customer.last_visit_date = last_visit_date if last_visit_date else None
-        customer.save()
+        email = request.POST.get('email')
         
-        messages.success(request, f'顧客「{customer.name}」を更新しました')
-        return redirect('customer-detail', pk=pk)
+        # メールアドレスの重複チェック（自分以外）
+        if Customer.objects.filter(email=email).exclude(pk=pk).exists():
+            messages.error(request, 'このメールアドレスは既に登録されています')
+            return render(request, 'main/customer_edit.html', {'customer': customer})
+        
+        try:
+            customer.name = request.POST.get('name')
+            customer.phone_number = request.POST.get('phone_number')
+            customer.email = email
+            customer.memo = request.POST.get('memo', '')
+            last_visit_date = request.POST.get('last_visit_date')
+            customer.last_visit_date = last_visit_date if last_visit_date else None
+            customer.save()
+            
+            messages.success(request, f'顧客「{customer.name}」を更新しました')
+            return redirect('customer-detail', pk=pk)
+        except Exception as e:
+            messages.error(request, f'更新に失敗しました: {str(e)}')
+            return render(request, 'main/customer_edit.html', {'customer': customer})
     
-    return render(request, 'main/customer_edit.html', {
-        'customer': customer,
-    })
+    return render(request, 'main/customer_edit.html', {'customer': customer})
 
 @login_required(login_url='login')
 def customer_delete(request, pk):

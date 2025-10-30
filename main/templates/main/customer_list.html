@@ -16,12 +16,35 @@
 
 <!-- 検索フォーム -->
 <form method="get" style="margin-bottom: 20px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+        <div>
+            <label for="search_name" style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">顧客名</label>
+            <input type="text" id="search_name" name="search_name" 
+                   value="{{ search_name }}" 
+                   placeholder="顧客名で検索"
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+        </div>
+        
+        <div>
+            <label for="search_phone" style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">電話番号</label>
+            <input type="text" id="search_phone" name="search_phone" 
+                   value="{{ search_phone }}" 
+                   placeholder="電話番号で検索"
+                   style="width: 100%; padding: 10px; border: 2px; border-radius: 5px;">
+        </div>
+        
+        <div>
+            <label for="search_email" style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">メールアドレス</label>
+            <input type="text" id="search_email" name="search_email" 
+                   value="{{ search_email }}" 
+                   placeholder="メールアドレスで検索"
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+        </div>
+    </div>
+    
     <div style="display: flex; gap: 10px;">
-        <input type="text" name="search" placeholder="顧客名または電話番号で検索" 
-               value="{{ search_query }}" 
-               style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
         <button type="submit" style="width: auto; padding: 10px 20px;">検索</button>
-        {% if search_query %}
+        {% if search_name or search_phone or search_email %}
         <a href="{% url 'customer-list' %}" style="text-decoration: none;">
             <button type="button" style="width: auto; padding: 10px 20px; background: #6c757d;">クリア</button>
         </a>
@@ -36,6 +59,7 @@
             <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
                 <th style="padding: 12px; text-align: left;">顧客名</th>
                 <th style="padding: 12px; text-align: left;">電話番号</th>
+                <th style="padding: 12px; text-align: left;">メールアドレス</th>
                 <th style="padding: 12px; text-align: left;">最終来店日</th>
                 <th style="padding: 12px; text-align: center;">操作</th>
             </tr>
@@ -45,6 +69,7 @@
             <tr style="border-bottom: 1px solid #dee2e6;">
                 <td style="padding: 12px;">{{ customer.name }}</td>
                 <td style="padding: 12px;">{{ customer.phone_number }}</td>
+                <td style="padding: 12px;">{{ customer.email }}</td>
                 <td style="padding: 12px;">{{ customer.last_visit_date|default:"未設定" }}</td>
                 <td style="padding: 12px; text-align: center;">
                     <a href="{% url 'customer-detail' customer.id %}" 

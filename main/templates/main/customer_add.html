@@ -15,7 +15,19 @@
     
     <div class="form-group">
         <label for="phone_number">電話番号 <span style="color: red;">*</span></label>
-        <input type="text" id="phone_number" name="phone_number" required>
+        <input type="text" id="phone_number" name="phone_number" 
+            pattern="^(0\d{1,4}-?\d{1,4}-?\d{4}|0\d{9,10})$"
+            placeholder="例: 090-1234-5678" 
+            title="正しい電話番号形式で入力してください（例: 090-1234-5678）"
+            required>
+        <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+            ※ 090-1234-5678 または 09012345678 の形式で入力してください
+        </small>
+    </div>
+    
+    <div class="form-group">
+        <label for="email">メールアドレス <span style="color: red;">*</span></label>
+        <input type="email" id="email" name="email" required>
     </div>
     
     <div class="form-group">
