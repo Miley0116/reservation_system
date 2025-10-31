@@ -10,13 +10,13 @@
     
     <div class="form-group">
         <label for="name">顧客名 <span style="color: red;">*</span></label>
-        <input type="text" id="name" name="name" required>
-    </div>
+        <input type="text" id="name" name="name" value="{{ name }}" required>    </div>
     
     <div class="form-group">
         <label for="phone_number">電話番号 <span style="color: red;">*</span></label>
         <input type="text" id="phone_number" name="phone_number" 
-            pattern="^(0\d{1,4}-?\d{1,4}-?\d{4}|0\d{9,10})$"
+            pattern="^0\d{1,4}-?\d{1,4}-?\d{3,4}$"
+            value="{{ phone_number }}"
             placeholder="例: 090-1234-5678" 
             title="正しい電話番号形式で入力してください（例: 090-1234-5678）"
             required>
@@ -27,19 +27,17 @@
     
     <div class="form-group">
         <label for="email">メールアドレス <span style="color: red;">*</span></label>
-        <input type="email" id="email" name="email" required>
-    </div>
+        <input type="email" id="email" name="email" value="{{ email }}" required>    </div>
     
     <div class="form-group">
         <label for="memo">メモ</label>
         <textarea id="memo" name="memo" rows="4" 
-                  style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;"></textarea>
+                  style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;">{{ memo }}</textarea>
     </div>
     
     <div class="form-group">
         <label for="last_visit_date">最終来店日</label>
-        <input type="date" id="last_visit_date" name="last_visit_date">
-    </div>
+        <input type="date" id="last_visit_date" name="last_visit_date" value="{{ last_visit_date }}">    </div>
     
     <button type="submit">登録</button>
     <a href="{% url 'customer-list' %}" style="text-decoration: none;">

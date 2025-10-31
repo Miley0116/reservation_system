@@ -130,10 +130,24 @@ def customer_add(request):
         memo = request.POST.get('memo', '')
         last_visit_date = request.POST.get('last_visit_date')
         
+        # 入力値を保持するためのコンテキスト
+        context = {
+            'name': name,
+            'phone_number': phone_number,
+            'email': email,
+            'memo': memo,
+            'last_visit_date': last_visit_date,
+        }
+        
+        # 電話番号の重複チェック
+        if Customer.objects.filter(phone_number=phone_number).exists():
+            messages.error(request, 'この電話番号は既に登録されています')
+            return render(request, 'main/customer_add.html', context)
+        
         # メールアドレスの重複チェック
         if Customer.objects.filter(email=email).exists():
             messages.error(request, 'このメールアドレスは既に登録されています')
-            return render(request, 'main/customer_add.html')
+            return render(request, 'main/customer_add.html', context)
         
         try:
             # 顧客作成
@@ -148,7 +162,7 @@ def customer_add(request):
             return redirect('customer-list')
         except Exception as e:
             messages.error(request, f'登録に失敗しました: {str(e)}')
-            return render(request, 'main/customer_add.html')
+            return render(request, 'main/customer_add.html', context)
     
     return render(request, 'main/customer_add.html')
 
@@ -175,16 +189,32 @@ def customer_edit(request, pk):
         return redirect('customer-list')
     
     if request.method == 'POST':
+        phone_number = request.POST.get('phone_number')
         email = request.POST.get('email')
+        
+        # 電話番号の重複チェック（自分以外）
+        if Customer.objects.filter(phone_number=phone_number).exclude(pk=pk).exists():
+            messages.error(request, 'この電話番号は既に登録されています')
+            # エラー時に入力値を保持
+            customer.name = request.POST.get('name')
+            customer.phone_number = phone_number
+            customer.email = email
+            customer.memo = request.POST.get('memo', '')
+            return render(request, 'main/customer_edit.html', {'customer': customer})
         
         # メールアドレスの重複チェック（自分以外）
         if Customer.objects.filter(email=email).exclude(pk=pk).exists():
             messages.error(request, 'このメールアドレスは既に登録されています')
+            # エラー時に入力値を保持
+            customer.name = request.POST.get('name')
+            customer.phone_number = phone_number
+            customer.email = email
+            customer.memo = request.POST.get('memo', '')
             return render(request, 'main/customer_edit.html', {'customer': customer})
         
         try:
             customer.name = request.POST.get('name')
-            customer.phone_number = request.POST.get('phone_number')
+            customer.phone_number = phone_number
             customer.email = email
             customer.memo = request.POST.get('memo', '')
             last_visit_date = request.POST.get('last_visit_date')

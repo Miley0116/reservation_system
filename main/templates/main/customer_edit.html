@@ -16,7 +16,7 @@
     <div class="form-group">
         <label for="phone_number">電話番号 <span style="color: red;">*</span></label>
         <input type="text" id="phone_number" name="phone_number" 
-            pattern="^(0\d{1,4}-?\d{1,4}-?\d{4}|0\d{9,10})$"
+            pattern="^0\d{1,4}-?\d{1,4}-?\d{3,4}$"
             value="{{ customer.phone_number }}" 
             placeholder="例: 090-1234-5678"
             title="正しい電話番号形式で入力してください（例: 090-1234-5678）"

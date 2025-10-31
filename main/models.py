@@ -13,8 +13,8 @@ class Administrator(models.Model):
 class Customer(models.Model):
     # 電話番号のバリデーター
     phone_regex = RegexValidator(
-        regex=r'^(0\d{1,4}-?\d{1,4}-?\d{4}|0\d{9,10})$',
-        message="正しい電話番号形式で入力してください。（例: 090-1234-5678 または 09012345678）"
+        regex=r'^0\d{1,4}-?\d{1,4}-?\d{3,4}$',
+        message="正しい電話番号形式で入力してください。（例: 090-1234-5678、03-1234-5678、0120-123-456）"
     )
     
     name = models.CharField(max_length=100, verbose_name="顧客名")
