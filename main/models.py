@@ -61,3 +61,28 @@ class Reservation(models.Model):
     class Meta:
         verbose_name = "予約"
         verbose_name_plural = "予約"
+        
+class Reservation(models.Model):
+    STATUS_CHOICES = [
+        ('pending', '予約中'),
+        ('completed', '完了'),
+        ('cancelled', 'キャンセル'),
+    ]
+    
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, verbose_name='顧客')
+    reservation_date = models.DateField(verbose_name='予約日')
+    reservation_time = models.TimeField(verbose_name='予約時間')
+    service = models.CharField(max_length=200, verbose_name='サービス内容')
+    duration = models.IntegerField(default=60, verbose_name='所要時間（分）')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='ステータス')
+    memo = models.TextField(blank=True, verbose_name='備考')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
+    
+    class Meta:
+        ordering = ['-reservation_date', '-reservation_time']
+        verbose_name = '予約'
+        verbose_name_plural = '予約'
+    
+    def __str__(self):
+        return f"{self.customer.name} - {self.reservation_date} {self.reservation_time}"

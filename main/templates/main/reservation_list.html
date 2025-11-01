@@ -1,0 +1,84 @@
+{% extends 'main/base.html' %}
+
+{% block title %}予約一覧{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>予約一覧</h2>
+    <div>
+        <a href="{% url 'admin-home' %}" style="text-decoration: none; color: #667eea; margin-right: 15px;">← ホームに戻る</a>
+        <a href="{% url 'logout' %}" style="text-decoration: none; color: #dc3545;">ログアウト</a>
+    </div>
+</div>
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'reservation_add' %}" style="text-decoration: none;">
+        <button style="width: auto; padding: 10px 20px;">+ 新規予約</button>
+    </a>
+</div>
+
+<!-- 検索フォーム -->
+<form method="GET" style="margin-bottom: 30px; background: #f8f9fa; padding: 20px; border-radius: 10px;">
+    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+        <input type="text" name="q" value="{{ query }}" 
+               placeholder="顧客名・サービス・ステータスで検索"
+               style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px;">
+        <button type="submit" style="width: auto; padding: 10px 30px;">検索</button>
+    </div>
+</form>
+
+{% if reservations %}
+<div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; background: white;">
+        <thead>
+            <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                <th style="padding: 12px; text-align: left;">予約日</th>
+                <th style="padding: 12px; text-align: left;">時間</th>
+                <th style="padding: 12px; text-align: left;">顧客名</th>
+                <th style="padding: 12px; text-align: left;">サービス</th>
+                <th style="padding: 12px; text-align: left;">所要時間</th>
+                <th style="padding: 12px; text-align: left;">ステータス</th>
+                <th style="padding: 12px; text-align: center;">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reservation in reservations %}
+            <tr style="border-bottom: 1px solid #dee2e6;">
+                <td style="padding: 12px;">{{ reservation.reservation_date }}</td>
+                <td style="padding: 12px;">{{ reservation.reservation_time }}</td>
+                <td style="padding: 12px;">{{ reservation.customer.name }}</td>
+                <td style="padding: 12px;">{{ reservation.service }}</td>
+                <td style="padding: 12px;">{{ reservation.duration }}分</td>
+                <td style="padding: 12px;">
+                    {% if reservation.status == 'pending' %}
+                        <span style="background: #ffc107; color: white; padding: 3px 10px; border-radius: 3px; font-size: 12px;">予約中</span>
+                    {% elif reservation.status == 'completed' %}
+                        <span style="background: #28a745; color: white; padding: 3px 10px; border-radius: 3px; font-size: 12px;">完了</span>
+                    {% else %}
+                        <span style="background: #6c757d; color: white; padding: 3px 10px; border-radius: 3px; font-size: 12px;">キャンセル</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 12px; text-align: center;">
+                    <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
+                        <a href="{% url 'reservation_edit' reservation.pk %}" 
+                           style="color: #28a745; text-decoration: none;">編集</a>
+                        <a href="{% url 'reservation_delete' reservation.pk %}" 
+                           style="color: #dc3545; text-decoration: none;"
+                           onclick="return confirm('本当に削除しますか？')">削除</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p style="text-align: center; color: #666; margin-top: 40px;">
+    {% if query %}
+    「{{ query }}」に一致する予約が見つかりませんでした。
+    {% else %}
+    予約がまだありません。
+    {% endif %}
+</p>
+{% endif %}
+{% endblock %}

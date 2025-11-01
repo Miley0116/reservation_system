@@ -9,13 +9,13 @@
 </p>
 
 <div style="display: grid; gap: 15px; margin-bottom: 30px;">
-    <a href="{% url 'customer-list' %}" style="text-decoration: none;">
+    <a href="{% url 'customer_list' %}" style="text-decoration: none;">
         <button style="background: #28a745;">👥 顧客管理</button>
     </a>
     
-    <button style="background: #6c757d; cursor: not-allowed;" disabled>
-        📅 予約管理（準備中）
-    </button>
+    <a href="{% url 'reservation_list' %}" style="text-decoration: none;">
+        <button style="background: #007bff;">📅 予約管理</button>
+    </a>
 </div>
 
 <a href="{% url 'logout' %}" style="text-decoration: none;">

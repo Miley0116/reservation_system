@@ -9,7 +9,7 @@
 </div>
 
 <div style="margin-bottom: 20px;">
-    <a href="{% url 'customer-add' %}" style="text-decoration: none;">
+    <a href="{% url 'customer_add' %}" style="text-decoration: none;">
         <button style="width: auto; padding: 10px 20px;">+ 新規登録</button>
     </a>
 </div>
@@ -45,7 +45,7 @@
     <div style="display: flex; gap: 10px;">
         <button type="submit" style="width: auto; padding: 10px 30px;">検索</button>
         {% if search_name or search_phone or search_email %}
-        <a href="{% url 'customer-list' %}" style="text-decoration: none;">
+        <a href="{% url 'customer_list' %}" style="text-decoration: none;">
             <button type="button" style="width: auto; padding: 10px 30px; background: #6c757d;">クリア</button>
         </a>
         {% endif %}
@@ -73,9 +73,9 @@
                 <td style="padding: 12px;">{{ customer.last_visit_date|default:"未設定" }}</td>
                 <td style="padding: 12px; text-align: center;">
                     <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
-                        <a href="{% url 'customer-detail' customer.id %}" 
+                        <a href="{% url 'customer_detail' customer.id %}" 
                             style="color: #667eea; text-decoration: none;">詳細</a>
-                        <a href="{% url 'customer-edit' customer.id %}" 
+                        <a href="{% url 'customer_edit' customer.id %}" 
                             style="color: #28a745; text-decoration: none;">編集</a>
                     </div>
                 </td>

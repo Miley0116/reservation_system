@@ -1,11 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from .models import Administrator, Customer
+from .models import Administrator, Customer, Reservation
 
 def welcome(request):
     """Welcomeページ"""
@@ -159,7 +160,7 @@ def customer_add(request):
                 last_visit_date=last_visit_date if last_visit_date else None
             )
             messages.success(request, f'顧客「{name}」を登録しました')
-            return redirect('customer-list')
+            return redirect('customer_list')
         except Exception as e:
             messages.error(request, f'登録に失敗しました: {str(e)}')
             return render(request, 'main/customer_add.html', context)
@@ -173,7 +174,7 @@ def customer_detail(request, pk):
         customer = Customer.objects.get(pk=pk)
     except Customer.DoesNotExist:
         messages.error(request, '顧客が見つかりません')
-        return redirect('customer-list')
+        return redirect('customer_list')
     
     return render(request, 'main/customer_detail.html', {
         'customer': customer,
@@ -186,7 +187,7 @@ def customer_edit(request, pk):
         customer = Customer.objects.get(pk=pk)
     except Customer.DoesNotExist:
         messages.error(request, '顧客が見つかりません')
-        return redirect('customer-list')
+        return redirect('customer_list')
     
     if request.method == 'POST':
         phone_number = request.POST.get('phone_number')
@@ -222,7 +223,7 @@ def customer_edit(request, pk):
             customer.save()
             
             messages.success(request, f'顧客「{customer.name}」を更新しました')
-            return redirect('customer-detail', pk=pk)
+            return redirect('customer_detail', pk=pk)
         except Exception as e:
             messages.error(request, f'更新に失敗しました: {str(e)}')
             return render(request, 'main/customer_edit.html', {'customer': customer})
@@ -241,6 +242,79 @@ def customer_delete(request, pk):
         except Customer.DoesNotExist:
             messages.error(request, '顧客が見つかりません')
         
-        return redirect('customer-list')
+        return redirect('customer_list')
     
-    return redirect('customer-list')
+    return redirect('customer_list')
+
+# 予約一覧
+@login_required
+def reservation_list(request):
+    query = request.GET.get('q', '')
+    if query:
+        reservations = Reservation.objects.filter(
+            Q(customer__name__icontains=query) |
+            Q(service__icontains=query) |
+            Q(status__icontains=query)
+        )
+    else:
+        reservations = Reservation.objects.all()
+    
+    return render(request, 'main/reservation_list.html', {
+        'reservations': reservations,
+        'query': query
+    })
+
+# 予約追加
+@login_required
+def reservation_add(request):
+    if request.method == 'POST':
+        customer_id = request.POST.get('customer')
+        reservation_date = request.POST.get('reservation_date')
+        reservation_time = request.POST.get('reservation_time')
+        service = request.POST.get('service')
+        duration = request.POST.get('duration', 60)
+        status = request.POST.get('status', 'pending')
+        memo = request.POST.get('memo', '')
+        
+        Reservation.objects.create(
+            customer_id=customer_id,
+            reservation_date=reservation_date,
+            reservation_time=reservation_time,
+            service=service,
+            duration=duration,
+            status=status,
+            memo=memo
+        )
+        return redirect('reservation_list')
+    
+    customers = Customer.objects.all()
+    return render(request, 'main/reservation_add.html', {'customers': customers})
+
+# 予約編集
+@login_required
+def reservation_edit(request, pk):
+    reservation = get_object_or_404(Reservation, pk=pk)
+    
+    if request.method == 'POST':
+        reservation.customer_id = request.POST.get('customer')
+        reservation.reservation_date = request.POST.get('reservation_date')
+        reservation.reservation_time = request.POST.get('reservation_time')
+        reservation.service = request.POST.get('service')
+        reservation.duration = request.POST.get('duration', 60)
+        reservation.status = request.POST.get('status')
+        reservation.memo = request.POST.get('memo', '')
+        reservation.save()
+        return redirect('reservation_list')
+    
+    customers = Customer.objects.all()
+    return render(request, 'main/reservation_edit.html', {
+        'reservation': reservation,
+        'customers': customers
+    })
+
+# 予約削除
+@login_required
+def reservation_delete(request, pk):
+    reservation = get_object_or_404(Reservation, pk=pk)
+    reservation.delete()
+    return redirect('reservation_list')

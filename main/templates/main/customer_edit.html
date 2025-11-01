@@ -44,13 +44,13 @@
     </div>
     
     <button type="submit">更新</button>
-    <a href="{% url 'customer-detail' customer.id %}" style="text-decoration: none;">
+    <a href="{% url 'customer_detail' customer.id %}" style="text-decoration: none;">
         <button type="button" style="background: #6c757d; margin-top: 10px;">キャンセル</button>
     </a>
 </form>
 
 <!-- 削除ボタン -->
-<form method="post" action="{% url 'customer-delete' customer.id %}" 
+<form method="post" action="{% url 'customer_delete' customer.id %}" 
       onsubmit="return confirm('本当にこの顧客を削除しますか？');" 
       style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
     {% csrf_token %}

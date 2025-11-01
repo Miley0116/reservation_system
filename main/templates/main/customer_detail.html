@@ -37,11 +37,11 @@
     </div>
 </div>
 
-<a href="{% url 'customer-edit' customer.id %}" style="text-decoration: none;">
+<a href="{% url 'customer_edit' customer.id %}" style="text-decoration: none;">
     <button style="background: #28a745;">編集</button>
 </a>
 
-<a href="{% url 'customer-list' %}" style="text-decoration: none;">
+<a href="{% url 'customer_list' %}" style="text-decoration: none;">
     <button style="background: #6c757d; margin-top: 10px;">一覧に戻る</button>
 </a>
 {% endblock %}
