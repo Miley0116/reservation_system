@@ -249,19 +249,48 @@ def customer_delete(request, pk):
 # 予約一覧
 @login_required
 def reservation_list(request):
-    query = request.GET.get('q', '')
-    if query:
-        reservations = Reservation.objects.filter(
-            Q(customer__name__icontains=query) |
-            Q(service__icontains=query) |
-            Q(status__icontains=query)
-        )
-    else:
-        reservations = Reservation.objects.all()
+    reservations = Reservation.objects.all()
+    
+    # 予約日（from-to）
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    if date_from:
+        reservations = reservations.filter(reservation_date__gte=date_from)
+    if date_to:
+        reservations = reservations.filter(reservation_date__lte=date_to)
+    
+    # 時間（from-to）
+    time_from = request.GET.get('time_from', '')
+    time_to = request.GET.get('time_to', '')
+    if time_from:
+        reservations = reservations.filter(reservation_time__gte=time_from)
+    if time_to:
+        reservations = reservations.filter(reservation_time__lte=time_to)
+    
+    # 顧客名（複数選択）
+    customer_ids = request.GET.getlist('customers')
+    if customer_ids:
+        reservations = reservations.filter(customer_id__in=customer_ids)
+    
+    # ステータス（複数選択）
+    statuses = request.GET.getlist('statuses')
+    if statuses:
+        reservations = reservations.filter(status__in=statuses)
+    
+    # 全顧客とステータス選択肢を取得
+    all_customers = Customer.objects.all()
+    status_choices = Reservation.STATUS_CHOICES
     
     return render(request, 'main/reservation_list.html', {
         'reservations': reservations,
-        'query': query
+        'all_customers': all_customers,
+        'status_choices': status_choices,
+        'date_from': date_from,
+        'date_to': date_to,
+        'time_from': time_from,
+        'time_to': time_to,
+        'selected_customers': customer_ids,
+        'selected_statuses': statuses,
     })
 
 # 予約追加
@@ -287,9 +316,16 @@ def reservation_add(request):
         )
         return redirect('reservation_list')
     
+    # 今日の日付を追加
+    from datetime import date
+    today = date.today()
+    
     customers = Customer.objects.all()
-    return render(request, 'main/reservation_add.html', {'customers': customers})
-
+    return render(request, 'main/reservation_add.html', {
+        'customers': customers,
+        'today': today
+    })
+    
 # 予約編集
 @login_required
 def reservation_edit(request, pk):
@@ -306,12 +342,17 @@ def reservation_edit(request, pk):
         reservation.save()
         return redirect('reservation_list')
     
+    # 今日の日付を追加
+    from datetime import date
+    today = date.today()
+    
     customers = Customer.objects.all()
     return render(request, 'main/reservation_edit.html', {
         'reservation': reservation,
-        'customers': customers
+        'customers': customers,
+        'today': today
     })
-
+    
 # 予約削除
 @login_required
 def reservation_delete(request, pk):

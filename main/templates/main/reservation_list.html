@@ -19,11 +19,73 @@
 
 <!-- 検索フォーム -->
 <form method="GET" style="margin-bottom: 30px; background: #f8f9fa; padding: 20px; border-radius: 10px;">
-    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-        <input type="text" name="q" value="{{ query }}" 
-               placeholder="顧客名・サービス・ステータスで検索"
-               style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+        <!-- 予約日（From） -->
+        <div>
+            <label for="date_from" style="display: block; font-size: 14px; font-weight: bold; color: #333; margin-bottom: 8px;">予約日（From）</label>
+            <input type="date" id="date_from" name="date_from" value="{{ date_from }}"
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px;">
+        </div>
+        
+        <!-- 予約日（To） -->
+        <div>
+            <label for="date_to" style="display: block; font-size: 14px; font-weight: bold; color: #333; margin-bottom: 8px;">予約日（To）</label>
+            <input type="date" id="date_to" name="date_to" value="{{ date_to }}"
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px;">
+        </div>
+        
+        <!-- 時間（From） -->
+        <div>
+            <label for="time_from" style="display: block; font-size: 14px; font-weight: bold; color: #333; margin-bottom: 8px;">予約時間（From）</label>
+            <input type="time" id="time_from" name="time_from" value="{{ time_from }}"
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px;">
+        </div>
+        
+        <!-- 時間（To） -->
+        <div>
+            <label for="time_to" style="display: block; font-size: 14px; font-weight: bold; color: #333; margin-bottom: 8px;">予約時間（To）</label>
+            <input type="time" id="time_to" name="time_to" value="{{ time_to }}"
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px;">
+        </div>
+        
+        <!-- 顧客名（複数選択） -->
+        <div>
+            <label for="customers" style="display: block; font-size: 14px; font-weight: bold; color: #333; margin-bottom: 8px;">顧客名（複数選択可）</label>
+            <select id="customers" name="customers" multiple size="5"
+                    style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px;">
+                {% for customer in all_customers %}
+                <option value="{{ customer.pk }}" {% if customer.pk|stringformat:"s" in selected_customers %}selected{% endif %}>
+                    {{ customer.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                ※ Ctrlキー（Macは⌘キー）を押しながらクリックで複数選択
+            </small>
+        </div>
+        
+        <!-- ステータス（複数選択） -->
+        <div>
+            <label for="statuses" style="display: block; font-size: 14px; font-weight: bold; color: #333; margin-bottom: 8px;">ステータス（複数選択可）</label>
+            <select id="statuses" name="statuses" multiple size="3"
+                    style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px;">
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if value in selected_statuses %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+            <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                ※ Ctrlキー（Macは⌘キー）を押しながらクリックで複数選択
+            </small>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px;">
         <button type="submit" style="width: auto; padding: 10px 30px;">検索</button>
+        <a href="{% url 'reservation_list' %}" style="text-decoration: none;">
+            <button type="button" style="width: auto; padding: 10px 30px; background: #6c757d;">クリア</button>
+        </a>
     </div>
 </form>
 
