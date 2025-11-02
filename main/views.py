@@ -359,3 +359,7 @@ def reservation_delete(request, pk):
     reservation = get_object_or_404(Reservation, pk=pk)
     reservation.delete()
     return redirect('reservation_list')
+
+# カスタム404ページ
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)

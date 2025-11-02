@@ -21,3 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('main.urls')),
 ]
+
+# カスタム404ハンドラー
+handler404 = 'main.views.custom_404'
