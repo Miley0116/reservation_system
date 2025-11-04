@@ -246,6 +246,45 @@ def customer_delete(request, pk):
     
     return redirect('customer_list')
 
+# 予約時間の重複チェック関数
+def check_reservation_overlap(reservation_date, reservation_time, duration, exclude_id=None):
+    """
+    予約時間の重複をチェックする
+    exclude_id: 編集時に自分自身を除外するためのID
+    """
+    from datetime import datetime, timedelta
+    
+    # 新規予約の開始時刻と終了時刻を計算
+    start_datetime = datetime.combine(reservation_date, reservation_time)
+    end_datetime = start_datetime + timedelta(minutes=int(duration))
+    
+    # 同じ日の予約を取得
+    reservations = Reservation.objects.filter(
+        reservation_date=reservation_date,
+        status='pending'  # 予約中のもののみチェック
+    )
+    
+    # 編集時は自分自身を除外
+    if exclude_id:
+        reservations = reservations.exclude(pk=exclude_id)
+    
+    # 各予約と時間が重なるかチェック
+    for reservation in reservations:
+        existing_start = datetime.combine(
+            reservation.reservation_date, 
+            reservation.reservation_time
+        )
+        existing_end = existing_start + timedelta(minutes=reservation.duration)
+        
+        # 時間が重なる条件：
+        # 1. 新規予約の開始が既存予約の範囲内
+        # 2. 新規予約の終了が既存予約の範囲内
+        # 3. 新規予約が既存予約を完全に含む
+        if (start_datetime < existing_end and end_datetime > existing_start):
+            return True, reservation  # 重複あり
+    
+    return False, None  # 重複なし
+
 # 予約一覧
 @login_required
 def reservation_list(request):
@@ -305,6 +344,39 @@ def reservation_add(request):
         status = request.POST.get('status', 'pending')
         memo = request.POST.get('memo', '')
         
+        # 日付と時刻をdatetimeオブジェクトに変換
+        from datetime import datetime
+        date_obj = datetime.strptime(reservation_date, '%Y-%m-%d').date()
+        time_obj = datetime.strptime(reservation_time, '%H:%M').time()
+        
+        # 重複チェック
+        is_overlapping, overlapping_reservation = check_reservation_overlap(
+            date_obj, time_obj, duration
+        )
+        
+        if is_overlapping:
+            # 重複エラー
+            messages.error(
+                request, 
+                f'予約時間が重複しています。{overlapping_reservation.customer.name}様の予約（{overlapping_reservation.reservation_time}〜）と重なっています。'
+            )
+            # エラー時は入力値を保持
+            from datetime import date
+            today = date.today()
+            customers = Customer.objects.all()
+            return render(request, 'main/reservation_add.html', {
+                'customers': customers,
+                'today': today,
+                'selected_customer': customer_id,
+                'reservation_date': reservation_date,
+                'reservation_time': reservation_time,
+                'service': service,
+                'duration': duration,
+                'status': status,
+                'memo': memo,
+            })
+        
+        # 重複がなければ予約を作成
         Reservation.objects.create(
             customer_id=customer_id,
             reservation_date=reservation_date,
@@ -314,6 +386,7 @@ def reservation_add(request):
             status=status,
             memo=memo
         )
+        messages.success(request, '予約を登録しました')
         return redirect('reservation_list')
     
     # 今日の日付を追加
@@ -332,14 +405,58 @@ def reservation_edit(request, pk):
     reservation = get_object_or_404(Reservation, pk=pk)
     
     if request.method == 'POST':
-        reservation.customer_id = request.POST.get('customer')
-        reservation.reservation_date = request.POST.get('reservation_date')
-        reservation.reservation_time = request.POST.get('reservation_time')
-        reservation.service = request.POST.get('service')
-        reservation.duration = request.POST.get('duration', 60)
-        reservation.status = request.POST.get('status')
-        reservation.memo = request.POST.get('memo', '')
+        customer_id = request.POST.get('customer')
+        reservation_date = request.POST.get('reservation_date')
+        reservation_time = request.POST.get('reservation_time')
+        service = request.POST.get('service')
+        duration = request.POST.get('duration', 60)
+        status = request.POST.get('status')
+        memo = request.POST.get('memo', '')
+        
+        # 日付と時刻をdatetimeオブジェクトに変換
+        from datetime import datetime
+        date_obj = datetime.strptime(reservation_date, '%Y-%m-%d').date()
+        time_obj = datetime.strptime(reservation_time, '%H:%M').time()
+        
+        # 重複チェック（自分自身は除外）
+        is_overlapping, overlapping_reservation = check_reservation_overlap(
+            date_obj, time_obj, duration, exclude_id=pk
+        )
+        
+        if is_overlapping:
+            # 重複エラー
+            messages.error(
+                request, 
+                f'予約時間が重複しています。{overlapping_reservation.customer.name}様の予約（{overlapping_reservation.reservation_time}〜）と重なっています。'
+            )
+            # エラー時は入力値を保持して再表示
+            from datetime import date
+            today = date.today()
+            customers = Customer.objects.all()
+            # 一時的に値を更新（保存はしない）
+            reservation.customer_id = customer_id
+            reservation.reservation_date = date_obj
+            reservation.reservation_time = time_obj
+            reservation.service = service
+            reservation.duration = duration
+            reservation.status = status
+            reservation.memo = memo
+            return render(request, 'main/reservation_edit.html', {
+                'reservation': reservation,
+                'customers': customers,
+                'today': today
+            })
+        
+        # 重複がなければ更新
+        reservation.customer_id = customer_id
+        reservation.reservation_date = reservation_date
+        reservation.reservation_time = reservation_time
+        reservation.service = service
+        reservation.duration = duration
+        reservation.status = status
+        reservation.memo = memo
         reservation.save()
+        messages.success(request, '予約を更新しました')
         return redirect('reservation_list')
     
     # 今日の日付を追加
