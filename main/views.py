@@ -78,16 +78,73 @@ def login_view(request):
     
     return render(request, 'main/login.html')
 
-@login_required(login_url='login')
-def home(request):
-    """ホーム画面"""
-    return render(request, 'main/home.html')
-
 def logout_view(request):
     """ログアウト"""
     logout(request)
     messages.success(request, 'ログアウトしました')
     return redirect('welcome')
+
+@login_required(login_url='login')
+def home(request):
+    """ホーム画面（ダッシュボード）"""
+    from datetime import date, timedelta
+    from django.db.models import Count
+    
+    today = date.today()
+    
+    # 今日の予約数
+    today_reservations_count = Reservation.objects.filter(
+        reservation_date=today,
+        status='pending'
+    ).count()
+    
+    # 今週の予約数（月曜日から日曜日）
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+    week_reservations_count = Reservation.objects.filter(
+        reservation_date__range=[start_of_week, end_of_week],
+        status='pending'
+    ).count()
+    
+    # ステータス別集計
+    status_counts = Reservation.objects.values('status').annotate(count=Count('status'))
+    pending_count = 0
+    completed_count = 0
+    cancelled_count = 0
+    
+    for item in status_counts:
+        if item['status'] == 'pending':
+            pending_count = item['count']
+        elif item['status'] == 'completed':
+            completed_count = item['count']
+        elif item['status'] == 'cancelled':
+            cancelled_count = item['count']
+    
+    # 今日の予約リスト
+    today_reservations = Reservation.objects.filter(
+        reservation_date=today
+    ).order_by('reservation_time')[:5]
+    
+    # 直近の顧客リスト
+    recent_customers = Customer.objects.order_by('-created_at')[:5]
+    
+    # 全体の統計
+    total_customers = Customer.objects.count()
+    total_reservations = Reservation.objects.count()
+    
+    context = {
+        'today_reservations_count': today_reservations_count,
+        'week_reservations_count': week_reservations_count,
+        'pending_count': pending_count,
+        'completed_count': completed_count,
+        'cancelled_count': cancelled_count,
+        'today_reservations': today_reservations,
+        'recent_customers': recent_customers,
+        'total_customers': total_customers,
+        'total_reservations': total_reservations,
+    }
+    
+    return render(request, 'main/home.html', context)
 
 # ========== 顧客管理機能 ==========
 
