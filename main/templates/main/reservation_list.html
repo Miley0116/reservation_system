@@ -5,16 +5,14 @@
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2>予約一覧</h2>
-    <div>
-        <a href="{% url 'admin-home' %}" style="text-decoration: none; color: #667eea; margin-right: 15px;">← ホームに戻る</a>
-        <a href="{% url 'logout' %}" style="text-decoration: none; color: #dc3545;">ログアウト</a>
+    <div style="display: flex; gap: 10px;">
+        <a href="{% url 'reservation_calendar' %}" style="text-decoration: none;">
+            <button style="background: #667eea; padding: 8px 20px;">📆 カレンダー表示</button>
+        </a>
+        <a href="{% url 'reservation_add' %}" style="text-decoration: none;">
+            <button style="background: #28a745; padding: 8px 20px;">+ 新規予約</button>
+        </a>
     </div>
-</div>
-
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'reservation_add' %}" style="text-decoration: none;">
-        <button style="width: auto; padding: 10px 20px;">+ 新規予約</button>
-    </a>
 </div>
 
 <!-- 検索フォーム -->

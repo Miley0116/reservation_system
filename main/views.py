@@ -551,3 +551,54 @@ def reservation_delete(request, pk):
 # カスタム404ページ
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
+
+# カレンダー表示
+@login_required
+def reservation_calendar(request):
+    """予約カレンダー表示"""
+    return render(request, 'main/reservation_calendar.html')
+
+# カレンダー用の予約データをJSON形式で返す
+@login_required
+def reservation_calendar_data(request):
+    """カレンダー用の予約データAPI"""
+    from django.http import JsonResponse
+    
+    # クエリパラメータから開始日と終了日を取得
+    start = request.GET.get('start')
+    end = request.GET.get('end')
+    
+    # 予約データを取得
+    if start and end:
+        reservations = Reservation.objects.filter(
+            reservation_date__range=[start, end]
+        )
+    else:
+        reservations = Reservation.objects.all()
+    
+    # JSON形式に変換
+    events = []
+    for reservation in reservations:
+        # 色の設定（ステータスによって変更）
+        if reservation.status == 'pending':
+            color = '#ffc107'  # 黄色
+        elif reservation.status == 'completed':
+            color = '#28a745'  # 緑
+        else:
+            color = '#6c757d'  # 灰色
+        
+        events.append({
+            'id': reservation.pk,
+            'title': f'{reservation.customer.name} - {reservation.service}',
+            'start': f'{reservation.reservation_date}T{reservation.reservation_time}',
+            'end': f'{reservation.reservation_date}T{reservation.reservation_time}',
+            'color': color,
+            'extendedProps': {
+                'customer': reservation.customer.name,
+                'service': reservation.service,
+                'duration': reservation.duration,
+                'status': reservation.get_status_display(),
+            }
+        })
+    
+    return JsonResponse(events, safe=False)

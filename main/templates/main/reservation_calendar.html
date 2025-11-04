@@ -1,0 +1,121 @@
+{% extends 'main/base.html' %}
+
+{% block title %}予約カレンダー{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>予約カレンダー</h2>
+    <div style="display: flex; gap: 10px;">
+        <a href="{% url 'reservation_list' %}" style="text-decoration: none; color: #667eea;">← 予約一覧</a>
+        <a href="{% url 'reservation_add' %}" style="text-decoration: none;">
+            <button style="background: #28a745; padding: 8px 20px;">+ 新規予約</button>
+        </a>
+    </div>
+</div>
+
+<!-- カレンダー表示エリア -->
+<div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div id="calendar"></div>
+</div>
+
+<!-- FullCalendar CSS -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+
+<!-- FullCalendar JS -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+            today: '今日',
+            month: '月',
+            week: '週',
+            day: '日'
+        },
+        locale: 'ja',
+        firstDay: 1, // 月曜日始まり
+        height: 'auto',
+        
+        // 予約データを取得
+        events: "{% url 'reservation_calendar_data' %}",
+        
+        // 予約をクリックした時の処理
+        eventClick: function(info) {
+            var event = info.event;
+            var props = event.extendedProps;
+            
+            var message = 
+                '顧客: ' + props.customer + '\n' +
+                'サービス: ' + props.service + '\n' +
+                '所要時間: ' + props.duration + '分\n' +
+                'ステータス: ' + props.status;
+            
+            if (confirm(message + '\n\n編集しますか？')) {
+                window.location.href = '/reservation/edit/' + event.id + '/';
+            }
+        },
+        
+        // 日付をクリックした時の処理
+        dateClick: function(info) {
+            if (confirm(info.dateStr + 'に予約を追加しますか？')) {
+                window.location.href = '/reservation/add/?date=' + info.dateStr;
+            }
+        }
+    });
+    
+    calendar.render();
+});
+</script>
+
+<style>
+/* カレンダーのスタイル調整 */
+#calendar {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.fc {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.fc-toolbar-title {
+    font-size: 1.5em !important;
+    font-weight: bold;
+}
+
+.fc-button {
+    background: #667eea !important;
+    border: none !important;
+    padding: 8px 15px !important;
+}
+
+.fc-button:hover {
+    background: #5568d3 !important;
+}
+
+.fc-button-active {
+    background: #4a54b8 !important;
+}
+
+.fc-event {
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-size: 12px;
+}
+
+.fc-daygrid-day:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+</style>
+{% endblock %}

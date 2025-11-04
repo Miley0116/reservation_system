@@ -115,13 +115,17 @@
 </div>
 
 <!-- 管理メニュー -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px;">
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px;">
     <a href="{% url 'customer_list' %}" style="text-decoration: none;">
         <button style="background: #28a745;">👥 顧客管理</button>
     </a>
     
     <a href="{% url 'reservation_list' %}" style="text-decoration: none;">
         <button style="background: #007bff;">📅 予約管理</button>
+    </a>
+    
+    <a href="{% url 'reservation_calendar' %}" style="text-decoration: none;">
+        <button style="background: #667eea;">📆 カレンダー</button>
     </a>
 </div>
 
