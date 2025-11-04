@@ -233,8 +233,22 @@ def customer_detail(request, pk):
         messages.error(request, '顧客が見つかりません')
         return redirect('customer_list')
     
+    # 顧客の予約履歴を取得（新しい順）
+    reservations = Reservation.objects.filter(customer=customer).order_by('-reservation_date', '-reservation_time')
+    
+    # 予約回数の集計
+    total_reservations = reservations.count()
+    completed_reservations = reservations.filter(status='completed').count()
+    pending_reservations = reservations.filter(status='pending').count()
+    cancelled_reservations = reservations.filter(status='cancelled').count()
+    
     return render(request, 'main/customer_detail.html', {
         'customer': customer,
+        'reservations': reservations,
+        'total_reservations': total_reservations,
+        'completed_reservations': completed_reservations,
+        'pending_reservations': pending_reservations,
+        'cancelled_reservations': cancelled_reservations,
     })
 
 @login_required(login_url='login')

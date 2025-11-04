@@ -1,47 +1,119 @@
 {% extends 'main/base.html' %}
 
-{% block title %}顧客詳細{% endblock %}
+{% block title %}顧客詳細 - {{ customer.name }}{% endblock %}
 
 {% block content %}
-<h2>顧客詳細</h2>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>顧客詳細</h2>
+    <a href="{% url 'customer_list' %}" style="text-decoration: none; color: #667eea;">← 顧客一覧に戻る</a>
+</div>
 
-<div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-    <div style="margin-bottom: 15px;">
-        <strong style="color: #555;">顧客名:</strong>
-        <p style="margin: 5px 0;">{{ customer.name }}</p>
+<!-- 顧客基本情報 -->
+<div style="background: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">顧客名</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">{{ customer.name }}</p>
+        </div>
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">電話番号</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">{{ customer.phone_number }}</p>
+        </div>
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">メールアドレス</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">{{ customer.email }}</p>
+        </div>
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">最終来店日</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">
+                {% if customer.last_visit_date %}
+                    {{ customer.last_visit_date }}
+                {% else %}
+                    未設定
+                {% endif %}
+            </p>
+        </div>
     </div>
     
-    <div style="margin-bottom: 15px;">
-        <strong style="color: #555;">電話番号:</strong>
-        <p style="margin: 5px 0;">{{ customer.phone_number }}</p>
+    {% if customer.memo %}
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+        <p style="color: #666; font-size: 14px; margin-bottom: 5px;">備考</p>
+        <p style="color: #333;">{{ customer.memo }}</p>
     </div>
-
-    <div style="margin-bottom: 15px;">
-        <strong style="color: #555;">メールアドレス:</strong>
-        <p style="margin: 5px 0;">{{ customer.email }}</p>
-    </div>
+    {% endif %}
     
-    <div style="margin-bottom: 15px;">
-        <strong style="color: #555;">メモ:</strong>
-        <p style="margin: 5px 0;">{{ customer.memo|default:"なし" }}</p>
-    </div>
-    
-    <div style="margin-bottom: 15px;">
-        <strong style="color: #555;">最終来店日:</strong>
-        <p style="margin: 5px 0;">{{ customer.last_visit_date|default:"未設定" }}</p>
-    </div>
-    
-    <div style="margin-bottom: 15px;">
-        <strong style="color: #555;">登録日時:</strong>
-        <p style="margin: 5px 0;">{{ customer.created_at|date:"Y年m月d日 H:i" }}</p>
+    <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <a href="{% url 'customer_edit' customer.pk %}" style="text-decoration: none;">
+            <button style="background: #667eea;">編集</button>
+        </a>
+        <form method="POST" action="{% url 'customer_delete' customer.pk %}" style="display: inline;" onsubmit="return confirm('本当に削除しますか？');">
+            {% csrf_token %}
+            <button type="submit" style="background: #dc3545;">削除</button>
+        </form>
     </div>
 </div>
 
-<a href="{% url 'customer_edit' customer.id %}" style="text-decoration: none;">
-    <button style="background: #28a745;">編集</button>
-</a>
+<!-- 予約統計 -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">総予約数</div>
+        <div style="font-size: 32px; font-weight: bold;">{{ total_reservations }}</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">完了</div>
+        <div style="font-size: 32px; font-weight: bold;">{{ completed_reservations }}</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">予約中</div>
+        <div style="font-size: 32px; font-weight: bold;">{{ pending_reservations }}</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #a8a8a8 0%, #5f5f5f 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">キャンセル</div>
+        <div style="font-size: 32px; font-weight: bold;">{{ cancelled_reservations }}</div>
+    </div>
+</div>
 
-<a href="{% url 'customer_list' %}" style="text-decoration: none;">
-    <button style="background: #6c757d; margin-top: 10px;">一覧に戻る</button>
-</a>
+<!-- 予約履歴 -->
+<div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h3 style="margin-bottom: 20px; color: #333;">予約履歴</h3>
+    
+    {% if reservations %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                    <th style="padding: 12px; text-align: left; font-weight: bold; color: #495057;">予約日</th>
+                    <th style="padding: 12px; text-align: left; font-weight: bold; color: #495057;">時間</th>
+                    <th style="padding: 12px; text-align: left; font-weight: bold; color: #495057;">サービス</th>
+                    <th style="padding: 12px; text-align: left; font-weight: bold; color: #495057;">所要時間</th>
+                    <th style="padding: 12px; text-align: left; font-weight: bold; color: #495057;">ステータス</th>
+                    <th style="padding: 12px; text-align: left; font-weight: bold; color: #495057;">備考</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in reservations %}
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 12px;">{{ reservation.reservation_date }}</td>
+                    <td style="padding: 12px;">{{ reservation.reservation_time }}</td>
+                    <td style="padding: 12px;">{{ reservation.service }}</td>
+                    <td style="padding: 12px;">{{ reservation.duration }}分</td>
+                    <td style="padding: 12px;">
+                        {% if reservation.status == 'pending' %}
+                            <span style="background: #ffc107; color: white; padding: 3px 10px; border-radius: 3px; font-size: 12px;">予約中</span>
+                        {% elif reservation.status == 'completed' %}
+                            <span style="background: #28a745; color: white; padding: 3px 10px; border-radius: 3px; font-size: 12px;">完了</span>
+                        {% else %}
+                            <span style="background: #6c757d; color: white; padding: 3px 10px; border-radius: 3px; font-size: 12px;">キャンセル</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px; color: #666; font-size: 14px;">{{ reservation.memo|truncatewords:10 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="text-align: center; color: #999; padding: 40px 0;">予約履歴がありません</p>
+    {% endif %}
+</div>
 {% endblock %}
