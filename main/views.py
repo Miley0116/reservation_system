@@ -463,11 +463,17 @@ def reservation_add(request):
     # 今日の日付を追加
     from datetime import date
     today = date.today()
-    
+
+    # URLパラメータから日付と時間を取得（カレンダーから遷移した場合）
+    selected_date = request.GET.get('date', '')
+    selected_time = request.GET.get('time', '')
+
     customers = Customer.objects.all()
     return render(request, 'main/reservation_add.html', {
         'customers': customers,
-        'today': today
+        'today': today,
+        'selected_date': selected_date,
+        'selected_time': selected_time,  # 追加
     })
     
 # 予約編集

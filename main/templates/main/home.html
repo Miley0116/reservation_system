@@ -11,31 +11,31 @@
 <!-- 統計カード -->
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;">
     <!-- 今日の予約 -->
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white;">
-        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 10px;">今日の予約</div>
-        <div style="font-size: 36px; font-weight: bold;">{{ today_reservations_count }}</div>
-        <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">件</div>
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; position: relative; min-height: 120px;">
+        <div style="font-size: 14px; font-weight: bold; position: absolute; top: 15px; left: 20px;">今日の予約</div>
+        <div style="font-size: 42px; font-weight: bold; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">{{ today_reservations_count }}</div>
+        <div style="font-size: 12px; position: absolute; bottom: 15px; right: 20px;">件</div>
     </div>
     
     <!-- 今週の予約 -->
-    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 10px; color: white;">
-        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 10px;">今週の予約</div>
-        <div style="font-size: 36px; font-weight: bold;">{{ week_reservations_count }}</div>
-        <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">件</div>
+    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 10px; color: white; position: relative; min-height: 120px;">
+        <div style="font-size: 14px; font-weight: bold; position: absolute; top: 15px; left: 20px;">今週の予約</div>
+        <div style="font-size: 42px; font-weight: bold; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">{{ week_reservations_count }}</div>
+        <div style="font-size: 12px; position: absolute; bottom: 15px; right: 20px;">件</div>
     </div>
     
     <!-- 総顧客数 -->
-    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 20px; border-radius: 10px; color: white;">
-        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 10px;">総顧客数</div>
-        <div style="font-size: 36px; font-weight: bold;">{{ total_customers }}</div>
-        <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">人</div>
+    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 20px; border-radius: 10px; color: white; position: relative; min-height: 120px;">
+        <div style="font-size: 14px; font-weight: bold; position: absolute; top: 15px; left: 20px;">総顧客数</div>
+        <div style="font-size: 42px; font-weight: bold; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">{{ total_customers }}</div>
+        <div style="font-size: 12px; position: absolute; bottom: 15px; right: 20px;">人</div>
     </div>
     
     <!-- 総予約数 -->
-    <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 20px; border-radius: 10px; color: white;">
-        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 10px;">総予約数</div>
-        <div style="font-size: 36px; font-weight: bold;">{{ total_reservations }}</div>
-        <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">件</div>
+    <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 20px; border-radius: 10px; color: white; position: relative; min-height: 120px;">
+        <div style="font-size: 14px; font-weight: bold; position: absolute; top: 15px; left: 20px;">総予約数</div>
+        <div style="font-size: 42px; font-weight: bold; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">{{ total_reservations }}</div>
+        <div style="font-size: 12px; position: absolute; bottom: 15px; right: 20px;">件</div>
     </div>
 </div>
 

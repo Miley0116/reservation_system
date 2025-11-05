@@ -6,6 +6,9 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2>予約一覧</h2>
     <div style="display: flex; gap: 10px;">
+        <a href="{% url 'admin-home' %}" style="text-decoration: none;">
+            <button style="background: #667eea; padding: 8px 20px;">🏠 ホーム</button>
+        </a>
         <a href="{% url 'reservation_calendar' %}" style="text-decoration: none;">
             <button style="background: #667eea; padding: 8px 20px;">📆 カレンダー表示</button>
         </a>

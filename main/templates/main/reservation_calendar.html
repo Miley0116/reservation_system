@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
+        aspectRatio: 1.8,
+
         buttonText: {
             today: '今日',
             month: '月',
@@ -66,11 +68,24 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         
         // 日付をクリックした時の処理
-        dateClick: function(info) {
-            if (confirm(info.dateStr + 'に予約を追加しますか？')) {
-                window.location.href = '/reservation/add/?date=' + info.dateStr;
-            }
-        }
+dateClick: function(info) {
+    var date = info.dateStr.split('T')[0]; // 日付部分
+    var time = info.dateStr.split('T')[1]; // 時間部分（あれば）
+    
+    var message = date;
+    var url = '/reservation/add/?date=' + date;
+    
+    if (time) {
+        // 時間がある場合（週・日ビュー）
+        time = time.substring(0, 5); // HH:MM形式に
+        message = date + ' ' + time;
+        url += '&time=' + time;
+    }
+    
+    if (confirm(message + 'に予約を追加しますか？')) {
+        window.location.href = url;
+    }
+}
     });
     
     calendar.render();
@@ -117,6 +132,21 @@ document.addEventListener('DOMContentLoaded', function() {
 .fc-daygrid-day:hover {
     background-color: #f8f9fa;
     cursor: pointer;
+}
+
+/* ヘッダーツールバーの高さを揃える */
+.fc-toolbar {
+    padding: 10px 0;
+}
+
+.fc-toolbar-chunk {
+    display: flex;
+    align-items: center;
+}
+
+.fc-button-group {
+    display: flex;
+    gap: 0;
 }
 </style>
 {% endblock %}
