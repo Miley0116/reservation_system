@@ -564,17 +564,8 @@ def reservation_calendar_data(request):
     """カレンダー用の予約データAPI"""
     from django.http import JsonResponse
     
-    # クエリパラメータから開始日と終了日を取得
-    start = request.GET.get('start')
-    end = request.GET.get('end')
-    
-    # 予約データを取得
-    if start and end:
-        reservations = Reservation.objects.filter(
-            reservation_date__range=[start, end]
-        )
-    else:
-        reservations = Reservation.objects.all()
+    # 全ての予約データを取得（日付フィルタなし）
+    reservations = Reservation.objects.all()
     
     # JSON形式に変換
     events = []
@@ -587,11 +578,13 @@ def reservation_calendar_data(request):
         else:
             color = '#6c757d'  # 灰色
         
+        # 日時をISO形式の文字列に変換
+        start_datetime = f'{reservation.reservation_date}T{reservation.reservation_time}'
+        
         events.append({
             'id': reservation.pk,
             'title': f'{reservation.customer.name} - {reservation.service}',
-            'start': f'{reservation.reservation_date}T{reservation.reservation_time}',
-            'end': f'{reservation.reservation_date}T{reservation.reservation_time}',
+            'start': start_datetime,
             'color': color,
             'extendedProps': {
                 'customer': reservation.customer.name,
