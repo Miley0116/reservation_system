@@ -601,3 +601,113 @@ def reservation_calendar_data(request):
         })
     
     return JsonResponse(events, safe=False)
+
+# ========== 一般ユーザー向け予約機能 ==========
+
+def public_booking(request):
+    """一般ユーザー向け予約フォーム"""
+    from datetime import date
+    today = date.today()
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        phone_number = request.POST.get('phone_number')
+        email = request.POST.get('email')
+        reservation_date = request.POST.get('reservation_date')
+        reservation_time = request.POST.get('reservation_time')
+        service = request.POST.get('service')
+        duration = request.POST.get('duration', 60)
+        memo = request.POST.get('memo', '')
+        
+        # 日付と時刻をdatetimeオブジェクトに変換
+        from datetime import datetime
+        date_obj = datetime.strptime(reservation_date, '%Y-%m-%d').date()
+        time_obj = datetime.strptime(reservation_time, '%H:%M').time()
+        
+        # 重複チェック
+        is_overlapping, overlapping_reservation = check_reservation_overlap(
+            date_obj, time_obj, duration
+        )
+        
+        if is_overlapping:
+            messages.error(
+                request, 
+                f'申し訳ございません。ご希望の時間帯は既に予約が入っております。別の時間帯をお選びください。'
+            )
+            return render(request, 'main/public_booking.html', {
+                'today': today,
+                'name': name,
+                'phone_number': phone_number,
+                'email': email,
+                'reservation_date': reservation_date,
+                'reservation_time': reservation_time,
+                'service': service,
+                'duration': duration,
+                'memo': memo,
+            })
+        
+        # 顧客の存在確認または作成
+        customer, created = Customer.objects.get_or_create(
+            email=email,
+            defaults={
+                'name': name,
+                'phone_number': phone_number,
+            }
+        )
+        
+        # 既存顧客の場合は情報を更新
+        if not created:
+            customer.name = name
+            customer.phone_number = phone_number
+            customer.save()
+        
+        # 予約作成
+        reservation = Reservation.objects.create(
+            customer=customer,
+            reservation_date=reservation_date,
+            reservation_time=reservation_time,
+            service=service,
+            duration=duration,
+            status='pending',
+            memo=memo
+        )
+        
+        # 予約完了画面へリダイレクト
+        return redirect('public_booking_complete', pk=reservation.pk)
+    
+    return render(request, 'main/public_booking.html', {
+        'today': today,
+    })
+
+def public_booking_complete(request, pk):
+    """予約完了画面"""
+    reservation = get_object_or_404(Reservation, pk=pk)
+    return render(request, 'main/public_booking_complete.html', {
+        'reservation': reservation,
+    })
+
+def public_booking_check(request):
+    """予約確認画面"""
+    reservations = None
+    email = ''
+    
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        # メールアドレスで顧客を検索
+        try:
+            customer = Customer.objects.get(email=email)
+            # その顧客の予約を取得（未来の予約のみ）
+            from datetime import date
+            today = date.today()
+            reservations = Reservation.objects.filter(
+                customer=customer,
+                reservation_date__gte=today
+            ).order_by('reservation_date', 'reservation_time')
+        except Customer.DoesNotExist:
+            messages.error(request, 'ご入力いただいたメールアドレスで予約が見つかりませんでした。')
+    
+    return render(request, 'main/public_booking_check.html', {
+        'reservations': reservations,
+        'email': email,
+    })

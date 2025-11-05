@@ -1,25 +1,248 @@
-{% extends 'main/base.html' %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - 予約管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block title %}Welcome - 予約管理システム{% endblock %}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            max-height: 100vh;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
 
-{% block content %}
-<h1>🎉 予約管理システム</h1>
-<p style="text-align: center; color: #666; margin-bottom: 30px;">
-    システムへようこそ！
-</p>
+        @media (min-height: 700px) {
+            body {
+                align-items: center;
+                padding-top: 20px;
+                padding-bottom: 20px;
+            }
+        }
 
-<a href="{% url 'login' %}" style="text-decoration: none;">
-    <button>管理者ログイン</button>
-</a>
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
 
-<div class="link">
-    <p>管理者アカウントをお持ちでない方</p>
-    <a href="{% url 'register' %}">管理者アカウント登録</a>
-</div>
+        h1 {
+            font-size: 26px;
+            color: #333;
+            margin-bottom: 15px;
+        }
 
-<div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
-    <p style="text-align: center; color: #666; font-size: 14px;">
-        ※ 一般ユーザー向けの予約機能は今後実装予定
-    </p>
-</div>
-{% endblock %}
+        .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 35px;
+            margin: 10px 0;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 15px;
+        }
+
+        .button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .divider {
+            margin: 25px 0;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+
+        .note {
+            color: #999;
+            font-size: 12px;
+        }
+
+        @media (max-height: 700px) {
+            .container {
+                padding: 30px 25px;
+            }
+    
+            .icon {
+                font-size: 40px;
+                margin-bottom: 10px;
+            }
+    
+            h1 {
+                font-size: 22px;
+                margin-bottom: 10px;
+            }
+    
+            p {
+                margin-bottom: 15px;
+                font-size: 14px;
+            }
+    
+            .button {
+                padding: 10px 30px;
+            }
+        }
+
+        /* 小さい画面用 */
+        @media (max-height: 800px) {
+            .container {
+            padding: 20px 25px;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+    
+        .icon {
+            font-size: 35px;
+            margin-bottom: 8px;
+        }
+    
+        h1 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+    
+        p {
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+    
+        .button {
+            padding: 10px 28px;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+    
+        .link {
+            font-size: 13px;
+            margin-top: 5px;
+        }
+    
+        .divider {
+            margin: 15px 0;
+            padding-top: 15px;
+        }
+    
+        .note {
+            font-size: 11px;
+        }
+    
+        .alert {
+            padding: 8px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+    }
+
+    @media (max-height: 600px) {
+        body {
+            padding: 5px;
+        }
+    
+        .container {
+            padding: 15px 20px;
+        }
+    
+        .icon {
+            font-size: 30px;
+            margin-bottom: 5px;
+        }
+    
+        h1 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+    
+        p {
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+    
+        .button {
+            padding: 8px 24px;
+            font-size: 13px;
+        }
+    
+        .divider {
+            margin: 10px 0;
+            padding-top: 10px;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="icon">🎉</div>
+        <h1>予約管理システム</h1>
+        <p>システムへようこそ！</p>
+
+        <a href="{% url 'login' %}" class="button">管理者ログイン</a>
+
+        <p style="margin-top: 25px; color: #999; font-size: 14px;">管理者アカウントをお持ちでない方</p>
+        <a href="{% url 'register' %}" class="link">管理者アカウント登録</a>
+
+        <div class="divider">
+            <p class="note">※ 一般ユーザー向けの予約機能は今後実装予定</p>
+        </div>
+    </div>
+</body>
+</html>

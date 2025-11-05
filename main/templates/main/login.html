@@ -3,6 +3,19 @@
 {% block title %}ログイン{% endblock %}
 
 {% block content %}
+<style>
+    /* ログイン画面専用：コンテナを中央配置 */
+    body {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .container {
+        max-width: 1000px !important;
+    }
+</style>
+
 <h2>ログイン</h2>
 
 <form method="post">
@@ -20,7 +33,7 @@
     <button type="submit">ログイン</button>
 </form>
 
-<div class="link">
-    <a href="{% url 'register' %}">管理者登録はこちら</a>
-</div>
+<p style="text-align: center; margin-top: 20px;">
+    <a href="{% url 'register' %}" style="color: #667eea; text-decoration: none;">管理者登録はこちら</a>
+</p>
 {% endblock %}
