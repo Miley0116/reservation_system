@@ -148,34 +148,37 @@ def home(request):
 
 # ========== 顧客管理機能 ==========
 
-@login_required(login_url='login')
+# 顧客一覧
+@login_required
 def customer_list(request):
-    """顧客一覧"""
-    search_name = request.GET.get('search_name', '')
-    search_phone = request.GET.get('search_phone', '')
-    search_email = request.GET.get('search_email', '')
+    from django.core.paginator import Paginator
     
-    customers = Customer.objects.all()
+    query = request.GET.get('query', '')
     
-    # 顧客名で絞り込み
-    if search_name:
-        customers = customers.filter(name__icontains=search_name)
+    if query:
+        # 検索条件に基づいてフィルタリング
+        customers = Customer.objects.filter(
+            name__icontains=query
+        ) | Customer.objects.filter(
+            phone_number__icontains=query
+        ) | Customer.objects.filter(
+            email__icontains=query
+        )
+    else:
+        customers = Customer.objects.all()
     
-    # 電話番号で絞り込み
-    if search_phone:
-        customers = customers.filter(phone_number__icontains=search_phone)
-    
-    # メールアドレスで絞り込み
-    if search_email:
-        customers = customers.filter(email__icontains=search_email)
-    
+    # 作成日時の降順でソート
     customers = customers.order_by('-created_at')
     
+    # ページネーション（1ページあたり10件）
+    paginator = Paginator(customers, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'main/customer_list.html', {
-        'customers': customers,
-        'search_name': search_name,
-        'search_phone': search_phone,
-        'search_email': search_email,
+        'customers': page_obj,
+        'query': query,
+        'page_obj': page_obj,
     })
 
 @login_required(login_url='login')
@@ -533,6 +536,15 @@ def reservation_edit(request, pk):
         reservation.status = status
         reservation.memo = memo
         reservation.save()
+        
+        # ステータスが完了になった場合、顧客の最終来店日を更新
+        print(f"DEBUG: status = {status}, type = {type(status)}")
+        if status == 'completed':
+            customer = reservation.customer
+            customer.last_visit_date = date_obj
+            customer.save()
+            print(f"DEBUG: 最終来店日を更新しました - {customer.name}: {customer.last_visit_date}")
+        
         messages.success(request, '予約を更新しました')
         return redirect('reservation_list')
     
@@ -545,6 +557,14 @@ def reservation_edit(request, pk):
         'reservation': reservation,
         'customers': customers,
         'today': today
+    })
+    
+# 予約詳細（閲覧専用）
+@login_required
+def reservation_detail(request, pk):
+    reservation = get_object_or_404(Reservation, pk=pk)
+    return render(request, 'main/reservation_detail.html', {
+        'reservation': reservation,
     })
     
 # 予約削除

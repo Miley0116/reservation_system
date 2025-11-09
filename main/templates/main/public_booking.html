@@ -213,6 +213,22 @@
             <button type="submit">予約を確定する</button>
         </form>
 
+        <script>
+        // 日付入力のカスタムバリデーションメッセージ
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('reservation_date');
+    
+            dateInput.addEventListener('invalid', function(e) {
+                e.preventDefault();
+                this.setCustomValidity('今日以降の日付を選択してください');
+            });
+    
+            dateInput.addEventListener('input', function() {
+                this.setCustomValidity('');
+            });
+        });
+        </script>
+
         <div class="link-section">
             <a href="{% url 'public_booking_check' %}">📋 予約を確認する</a>
         </div>

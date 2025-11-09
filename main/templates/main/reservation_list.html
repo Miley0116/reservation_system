@@ -123,11 +123,13 @@
                 </td>
                 <td style="padding: 12px; text-align: center;">
                     <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
+                        <a href="{% url 'reservation_detail' reservation.pk %}" 
+                            style="color: #17a2b8; text-decoration: none;">詳細</a>
                         <a href="{% url 'reservation_edit' reservation.pk %}" 
-                           style="color: #28a745; text-decoration: none;">編集</a>
+                            style="color: #28a745; text-decoration: none;">編集</a>
                         <a href="{% url 'reservation_delete' reservation.pk %}" 
-                           style="color: #dc3545; text-decoration: none;"
-                           onclick="return confirm('本当に削除しますか？')">削除</a>
+                            style="color: #dc3545; text-decoration: none;"
+                            onclick="return confirm('本当に削除しますか？')">削除</a>
                     </div>
                 </td>
             </tr>

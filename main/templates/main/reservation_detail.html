@@ -1,0 +1,101 @@
+{% extends 'main/base.html' %}
+
+{% block title %}予約詳細{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>予約詳細</h2>
+    <a href="{% url 'reservation_list' %}" style="text-decoration: none; color: #667eea;">← 予約一覧に戻る</a>
+</div>
+
+<!-- 予約情報カード -->
+<div style="background: white; padding: 30px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h3 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px;">予約情報</h3>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">予約番号</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">#{{ reservation.pk }}</p>
+        </div>
+        
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">ステータス</p>
+            <p style="font-size: 18px; font-weight: bold;">
+                {% if reservation.status == 'pending' %}
+                    <span style="background: #ffc107; color: white; padding: 5px 15px; border-radius: 5px; font-size: 16px;">予約中</span>
+                {% elif reservation.status == 'completed' %}
+                    <span style="background: #28a745; color: white; padding: 5px 15px; border-radius: 5px; font-size: 16px;">完了</span>
+                {% else %}
+                    <span style="background: #6c757d; color: white; padding: 5px 15px; border-radius: 5px; font-size: 16px;">キャンセル</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">予約日</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">{{ reservation.reservation_date }}</p>
+        </div>
+        
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">予約時間</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">{{ reservation.reservation_time }}</p>
+        </div>
+        
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">サービス内容</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">{{ reservation.service }}</p>
+        </div>
+        
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">所要時間</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">{{ reservation.duration }}分</p>
+        </div>
+    </div>
+    
+    {% if reservation.memo %}
+    <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid #eee;">
+        <p style="color: #666; font-size: 14px; margin-bottom: 8px;">備考</p>
+        <p style="color: #333; line-height: 1.6;">{{ reservation.memo }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 顧客情報カード -->
+<div style="background: white; padding: 30px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h3 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px;">顧客情報</h3>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">顧客名</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">{{ reservation.customer.name }}</p>
+        </div>
+        
+        <div>
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">電話番号</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">{{ reservation.customer.phone_number }}</p>
+        </div>
+        
+        <div style="grid-column: 1 / -1;">
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">メールアドレス</p>
+            <p style="font-size: 18px; font-weight: bold; color: #333;">{{ reservation.customer.email }}</p>
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <a href="{% url 'customer_detail' reservation.customer.pk %}" style="text-decoration: none;">
+            <button style="background: #667eea;">顧客詳細を見る</button>
+        </a>
+    </div>
+</div>
+
+<!-- アクションボタン -->
+<div style="display: flex; gap: 10px; justify-content: center;">
+    <a href="{% url 'reservation_edit' reservation.pk %}" style="text-decoration: none;">
+        <button style="background: #667eea; min-width: 150px;">編集</button>
+    </a>
+    <a href="{% url 'reservation_list' %}" style="text-decoration: none;">
+        <button style="background: #6c757d; min-width: 150px;">一覧に戻る</button>
+    </a>
+</div>
+
+{% endblock %}

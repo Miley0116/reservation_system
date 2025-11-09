@@ -24,6 +24,7 @@ urlpatterns = [
     # 予約管理
     path('reservation/', views.reservation_list, name='reservation_list'),
     path('reservation/add/', views.reservation_add, name='reservation_add'),
+    path('reservation/<int:pk>/', views.reservation_detail, name='reservation_detail'),
     path('reservation/edit/<int:pk>/', views.reservation_edit, name='reservation_edit'),
     path('reservation/delete/<int:pk>/', views.reservation_delete, name='reservation_delete'),
     
