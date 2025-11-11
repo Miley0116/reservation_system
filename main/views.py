@@ -460,9 +460,17 @@ def reservation_list(request):
     # 全顧客とステータス選択肢を取得
     all_customers = Customer.objects.all()
     status_choices = Reservation.STATUS_CHOICES
-    
+
+    # ページネーション（1ページあたり10件）
+    from django.core.paginator import Paginator
+    reservations = reservations.order_by('-reservation_date', '-reservation_time')
+    paginator = Paginator(reservations, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'main/reservation_list.html', {
-        'reservations': reservations,
+        'reservations': page_obj,
+        'page_obj': page_obj,
         'all_customers': all_customers,
         'status_choices': status_choices,
         'date_from': date_from,
