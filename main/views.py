@@ -15,10 +15,23 @@ def welcome(request):
 def register_view(request):
     """管理者登録"""
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password1 = request.POST.get('password1', '').strip()
+        password2 = request.POST.get('password2', '').strip()
+    
+        # スペースだけの入力をチェック
+        if not username:
+            messages.error(request, 'ユーザー名を入力してください')
+            return render(request, 'main/register.html')
+        
+        if not email:
+            messages.error(request, 'メールアドレスを入力してください')
+            return render(request, 'main/register.html')
+        
+        if not password1:
+            messages.error(request, 'パスワードを入力してください')
+            return render(request, 'main/register.html')
         
         # パスワード一致確認
         if password1 != password2:
@@ -64,8 +77,13 @@ def register_view(request):
 def login_view(request):
     """ログイン"""
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+
+        # スペースだけの入力をチェック
+        if not username or not password:
+            messages.error(request, 'ユーザー名とパスワードを入力してください')
+            return render(request, 'main/login.html')
         
         user = authenticate(request, username=username, password=password)
         
@@ -180,12 +198,57 @@ def customer_list(request):
         'query': query,
         'page_obj': page_obj,
     })
+    
+# 顧客一覧CSV出力
+@login_required
+def customer_list_csv(request):
+    import csv
+    from django.http import HttpResponse
+    from datetime import datetime
+    
+    query = request.GET.get('query', '')
+    
+    if query:
+        customers = Customer.objects.filter(
+            name__icontains=query
+        ) | Customer.objects.filter(
+            phone_number__icontains=query
+        ) | Customer.objects.filter(
+            email__icontains=query
+        )
+    else:
+        customers = Customer.objects.all()
+    
+    customers = customers.order_by('-created_at')
+    
+    # CSV出力
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    filename = f'customers_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['顧客名', '電話番号', 'メールアドレス', '最終来店日', '登録日'])
+    
+    for customer in customers:
+        writer.writerow([
+            customer.name,
+            customer.phone_number,
+            customer.email,
+            customer.last_visit_date if customer.last_visit_date else '未設定',
+            customer.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        ])
+    
+    return response
 
 @login_required(login_url='login')
 def customer_add(request):
     """顧客新規登録"""
     if request.method == 'POST':
-        name = request.POST.get('name')
+        name = request.POST.get('name', '').strip()
+        # スペースだけの入力をチェック
+        if not name:
+            messages.error(request, '顧客名を入力してください')
+            return render(request, 'main/customer_add.html')
         phone_number = request.POST.get('phone_number')
         email = request.POST.get('email')
         memo = request.POST.get('memo', '')
@@ -281,7 +344,11 @@ def customer_edit(request, pk):
         if Customer.objects.filter(email=email).exclude(pk=pk).exists():
             messages.error(request, 'このメールアドレスは既に登録されています')
             # エラー時に入力値を保持
-            customer.name = request.POST.get('name')
+            name = request.POST.get('name', '').strip()
+            # スペースだけの入力をチェック
+            if not name:
+                messages.error(request, '顧客名を入力してください')
+                return render(request, 'main/customer_edit.html', {'customer': customer})
             customer.phone_number = phone_number
             customer.email = email
             customer.memo = request.POST.get('memo', '')
@@ -405,6 +472,62 @@ def reservation_list(request):
         'selected_customers': customer_ids,
         'selected_statuses': statuses,
     })
+    
+# 予約一覧CSV出力
+@login_required
+def reservation_list_csv(request):
+    import csv
+    from django.http import HttpResponse
+    from datetime import datetime, date
+    
+    # 検索条件を取得
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    time_from = request.GET.get('time_from')
+    time_to = request.GET.get('time_to')
+    selected_customers = request.GET.getlist('customers')
+    selected_statuses = request.GET.getlist('statuses')
+    
+    reservations = Reservation.objects.all()
+    
+    # 検索条件でフィルタリング
+    if date_from:
+        reservations = reservations.filter(reservation_date__gte=date_from)
+    if date_to:
+        reservations = reservations.filter(reservation_date__lte=date_to)
+    if time_from:
+        reservations = reservations.filter(reservation_time__gte=time_from)
+    if time_to:
+        reservations = reservations.filter(reservation_time__lte=time_to)
+    if selected_customers:
+        reservations = reservations.filter(customer_id__in=selected_customers)
+    if selected_statuses:
+        reservations = reservations.filter(status__in=selected_statuses)
+    
+    reservations = reservations.order_by('-reservation_date', '-reservation_time')
+    
+    # CSV出力
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    filename = f'reservations_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['予約日', '時間', '顧客名', 'サービス', '所要時間', 'ステータス', '備考'])
+    
+    status_dict = {'pending': '予約中', 'completed': '完了', 'cancelled': 'キャンセル'}
+    
+    for reservation in reservations:
+        writer.writerow([
+            reservation.reservation_date,
+            reservation.reservation_time.strftime('%H:%M'),
+            reservation.customer.name,
+            reservation.service,
+            f'{reservation.duration}分',
+            status_dict.get(reservation.status, reservation.status),
+            reservation.memo
+        ])
+    
+    return response
 
 # 予約追加
 @login_required
@@ -630,9 +753,22 @@ def public_booking(request):
     today = date.today()
     
     if request.method == 'POST':
-        name = request.POST.get('name')
-        phone_number = request.POST.get('phone_number')
-        email = request.POST.get('email')
+        name = request.POST.get('name', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        email = request.POST.get('email', '').strip()
+
+        # スペースだけの入力をチェック
+        if not name:
+            messages.error(request, 'お名前を入力してください')
+            return render(request, 'main/public_booking.html', {'today': today})
+    
+        if not phone_number:
+            messages.error(request, '電話番号を入力してください')
+            return render(request, 'main/public_booking.html', {'today': today})
+    
+        if not email:
+            messages.error(request, 'メールアドレスを入力してください')
+            return render(request, 'main/public_booking.html', {'today': today})
         reservation_date = request.POST.get('reservation_date')
         reservation_time = request.POST.get('reservation_time')
         service = request.POST.get('service')
@@ -724,10 +860,31 @@ def public_booking_check(request):
                 customer=customer,
                 reservation_date__gte=today
             ).order_by('reservation_date', 'reservation_time')
+            
+            # メールアドレスをセッションに保存（詳細画面でのアクセス制御用）
+            if reservations.exists():
+                request.session['verified_email'] = email
+                
         except Customer.DoesNotExist:
             messages.error(request, 'ご入力いただいたメールアドレスで予約が見つかりませんでした。')
     
     return render(request, 'main/public_booking_check.html', {
         'reservations': reservations,
         'email': email,
+    })
+    
+# 一般ユーザー向け予約詳細
+def public_booking_detail(request, pk):
+    reservation = get_object_or_404(Reservation, pk=pk)
+    
+    # セッションで確認済みのメールアドレスを取得
+    verified_email = request.session.get('verified_email')
+    
+    # メールアドレスが一致しない場合はアクセス拒否
+    if not verified_email or verified_email != reservation.customer.email:
+        messages.error(request, 'この予約にアクセスする権限がありません')
+        return redirect('public_booking_check')
+    
+    return render(request, 'main/public_booking_detail.html', {
+        'reservation': reservation,
     })

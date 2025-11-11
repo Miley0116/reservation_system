@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.public_booking, name='public_booking'),
     path('booking/complete/<int:pk>/', views.public_booking_complete, name='public_booking_complete'),
     path('booking/check/', views.public_booking_check, name='public_booking_check'),
+    path('booking/<int:pk>/', views.public_booking_detail, name='public_booking_detail'),
     
     # 管理者向け
     path('welcome/', views.welcome, name='welcome'),
@@ -16,6 +17,7 @@ urlpatterns = [
     
     # 顧客管理
     path('customers/', views.customer_list, name='customer_list'),
+    path('customers/csv/', views.customer_list_csv, name='customer_list_csv'),
     path('customers/add/', views.customer_add, name='customer_add'),
     path('customers/<int:pk>/', views.customer_detail, name='customer_detail'),
     path('customers/<int:pk>/edit/', views.customer_edit, name='customer_edit'),
@@ -23,6 +25,7 @@ urlpatterns = [
     
     # 予約管理
     path('reservation/', views.reservation_list, name='reservation_list'),
+    path('reservation/csv/', views.reservation_list_csv, name='reservation_list_csv'),
     path('reservation/add/', views.reservation_add, name='reservation_add'),
     path('reservation/<int:pk>/', views.reservation_detail, name='reservation_detail'),
     path('reservation/edit/<int:pk>/', views.reservation_edit, name='reservation_edit'),

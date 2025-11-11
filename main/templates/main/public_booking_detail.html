@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約詳細 - 予約管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: #ffc107;
+            color: white;
+        }
+
+        .status-completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-cancelled {
+            background: #6c757d;
+            color: white;
+        }
+
+        .memo-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 予約詳細</h1>
+
+        <div class="alert alert-info">
+            予約内容をご確認ください。変更が必要な場合は、お手数ですが管理者までご連絡ください。
+        </div>
+
+        <!-- 予約情報 -->
+        <div class="info-card">
+            <div class="info-title">予約情報</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">予約番号</div>
+                    <div class="info-value">#{{ reservation.pk }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">ステータス</div>
+                    <div class="info-value">
+                        {% if reservation.status == 'pending' %}
+                            <span class="status-badge status-pending">予約中</span>
+                        {% elif reservation.status == 'completed' %}
+                            <span class="status-badge status-completed">完了</span>
+                        {% else %}
+                            <span class="status-badge status-cancelled">キャンセル</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">予約日</div>
+                    <div class="info-value">{{ reservation.reservation_date }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">予約時間</div>
+                    <div class="info-value">{{ reservation.reservation_time }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">サービス内容</div>
+                    <div class="info-value">{{ reservation.service }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">所要時間</div>
+                    <div class="info-value">{{ reservation.duration }}分</div>
+                </div>
+            </div>
+
+            {% if reservation.memo %}
+            <div class="memo-section">
+                <div class="info-label">備考</div>
+                <div class="info-value" style="font-weight: normal; line-height: 1.6;">{{ reservation.memo }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 顧客情報 -->
+        <div class="info-card">
+            <div class="info-title">お客様情報</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">お名前</div>
+                    <div class="info-value">{{ reservation.customer.name }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">電話番号</div>
+                    <div class="info-value">{{ reservation.customer.phone_number }}</div>
+                </div>
+                
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <div class="info-label">メールアドレス</div>
+                    <div class="info-value">{{ reservation.customer.email }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ボタン -->
+        <div class="button-group">
+            <a href="{% url 'public_booking_check' %}" class="btn btn-secondary">予約一覧に戻る</a>
+            <a href="{% url 'public_booking' %}" class="btn btn-primary">新しい予約をする</a>
+        </div>
+    </div>
+</body>
+</html>
