@@ -6,7 +6,26 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from .models import Administrator, Customer, Reservation
+from .models import Administrator, Customer, Reservation, UserProfile
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+# ユーザー作成時に自動でUserProfileを作成
+@receiver(post_save, sender=Administrator)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        from main.models import UserProfile
+        UserProfile.objects.get_or_create(user=instance)
+        
+# 権限チェックヘルパー関数
+def get_user_permissions(user):
+    """ユーザーの権限を取得"""
+    try:
+        admin = Administrator.objects.get(user=user)
+        profile, created = UserProfile.objects.get_or_create(user=admin)
+        return profile
+    except Administrator.DoesNotExist:
+        return None
 
 def welcome(request):
     """Welcomeページ"""
@@ -171,19 +190,19 @@ def home(request):
 def customer_list(request):
     from django.core.paginator import Paginator
     
-    query = request.GET.get('query', '')
+    search_name = request.GET.get('search_name', '')
+    search_phone = request.GET.get('search_phone', '')
+    search_email = request.GET.get('search_email', '')
     
-    if query:
-        # 検索条件に基づいてフィルタリング
-        customers = Customer.objects.filter(
-            name__icontains=query
-        ) | Customer.objects.filter(
-            phone_number__icontains=query
-        ) | Customer.objects.filter(
-            email__icontains=query
-        )
-    else:
-        customers = Customer.objects.all()
+    customers = Customer.objects.all()
+    
+    # 検索条件でフィルタリング
+    if search_name:
+        customers = customers.filter(name__icontains=search_name)
+    if search_phone:
+        customers = customers.filter(phone_number__icontains=search_phone)
+    if search_email:
+        customers = customers.filter(email__icontains=search_email)
     
     # 作成日時の降順でソート
     customers = customers.order_by('-created_at')
@@ -193,10 +212,17 @@ def customer_list(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
+    # 権限情報を取得
+    profile = get_user_permissions(request.user)
+
     return render(request, 'main/customer_list.html', {
         'customers': page_obj,
-        'query': query,
         'page_obj': page_obj,
+        'search_name': search_name,
+        'search_phone': search_phone,
+        'search_email': search_email,
+        'can_edit': profile.can_edit_customer if profile else False,
+        'can_delete': profile.can_delete_customer if profile else False,
     })
     
 # 顧客一覧CSV出力
@@ -206,18 +232,19 @@ def customer_list_csv(request):
     from django.http import HttpResponse
     from datetime import datetime
     
-    query = request.GET.get('query', '')
-    
-    if query:
-        customers = Customer.objects.filter(
-            name__icontains=query
-        ) | Customer.objects.filter(
-            phone_number__icontains=query
-        ) | Customer.objects.filter(
-            email__icontains=query
-        )
-    else:
-        customers = Customer.objects.all()
+    search_name = request.GET.get('search_name', '')
+    search_phone = request.GET.get('search_phone', '')
+    search_email = request.GET.get('search_email', '')
+
+    customers = Customer.objects.all()
+
+    # 検索条件でフィルタリング
+    if search_name:
+        customers = customers.filter(name__icontains=search_name)
+    if search_phone:
+        customers = customers.filter(phone_number__icontains=search_phone)
+    if search_email:
+        customers = customers.filter(email__icontains=search_email)
     
     customers = customers.order_by('-created_at')
     
@@ -308,6 +335,9 @@ def customer_detail(request, pk):
     pending_reservations = reservations.filter(status='pending').count()
     cancelled_reservations = reservations.filter(status='cancelled').count()
     
+    # 権限情報を取得
+    profile = get_user_permissions(request.user)
+
     return render(request, 'main/customer_detail.html', {
         'customer': customer,
         'reservations': reservations,
@@ -315,26 +345,36 @@ def customer_detail(request, pk):
         'completed_reservations': completed_reservations,
         'pending_reservations': pending_reservations,
         'cancelled_reservations': cancelled_reservations,
+        'can_edit': profile.can_edit_customer if profile else False,
+        'can_delete': profile.can_delete_customer if profile else False,
     })
 
 @login_required(login_url='login')
 def customer_edit(request, pk):
     """顧客編集"""
-    try:
-        customer = Customer.objects.get(pk=pk)
-    except Customer.DoesNotExist:
-        messages.error(request, '顧客が見つかりません')
-        return redirect('customer_list')
+    customer = get_object_or_404(Customer, pk=pk)
+    
+    # 権限チェック
+    profile = get_user_permissions(request.user)
+    if not profile or not profile.can_edit_customer:
+        messages.error(request, '顧客を編集する権限がありません')
+        return redirect('customer_detail', pk=pk)
     
     if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        
+        # スペースだけの入力をチェック
+        if not name:
+            messages.error(request, '顧客名を入力してください')
+            return render(request, 'main/customer_edit.html', {'customer': customer})
+        
         phone_number = request.POST.get('phone_number')
         email = request.POST.get('email')
         
         # 電話番号の重複チェック（自分以外）
         if Customer.objects.filter(phone_number=phone_number).exclude(pk=pk).exists():
             messages.error(request, 'この電話番号は既に登録されています')
-            # エラー時に入力値を保持
-            customer.name = request.POST.get('name')
+            customer.name = name
             customer.phone_number = phone_number
             customer.email = email
             customer.memo = request.POST.get('memo', '')
@@ -343,46 +383,44 @@ def customer_edit(request, pk):
         # メールアドレスの重複チェック（自分以外）
         if Customer.objects.filter(email=email).exclude(pk=pk).exists():
             messages.error(request, 'このメールアドレスは既に登録されています')
-            # エラー時に入力値を保持
-            name = request.POST.get('name', '').strip()
-            # スペースだけの入力をチェック
-            if not name:
-                messages.error(request, '顧客名を入力してください')
-                return render(request, 'main/customer_edit.html', {'customer': customer})
+            customer.name = name
             customer.phone_number = phone_number
             customer.email = email
             customer.memo = request.POST.get('memo', '')
             return render(request, 'main/customer_edit.html', {'customer': customer})
         
-        try:
-            customer.name = request.POST.get('name')
-            customer.phone_number = phone_number
-            customer.email = email
-            customer.memo = request.POST.get('memo', '')
-            last_visit_date = request.POST.get('last_visit_date')
-            customer.last_visit_date = last_visit_date if last_visit_date else None
-            customer.save()
-            
-            messages.success(request, f'顧客「{customer.name}」を更新しました')
-            return redirect('customer_detail', pk=pk)
-        except Exception as e:
-            messages.error(request, f'更新に失敗しました: {str(e)}')
-            return render(request, 'main/customer_edit.html', {'customer': customer})
+        customer.name = name
+        customer.phone_number = phone_number
+        customer.email = email
+        customer.memo = request.POST.get('memo', '')
+        last_visit_date = request.POST.get('last_visit_date')
+        customer.last_visit_date = last_visit_date if last_visit_date else None
+        customer.save()
+        
+        messages.success(request, f'顧客「{customer.name}」を更新しました')
+        return redirect('customer_detail', pk=pk)
     
     return render(request, 'main/customer_edit.html', {'customer': customer})
 
 @login_required(login_url='login')
 def customer_delete(request, pk):
     """顧客削除"""
+    try:
+        customer = Customer.objects.get(pk=pk)
+    except Customer.DoesNotExist:
+        messages.error(request, '顧客が見つかりません')
+        return redirect('customer_list')
+    
+    # 権限チェック
+    profile = get_user_permissions(request.user)
+    if not profile or not profile.can_delete_customer:
+        messages.error(request, '顧客を削除する権限がありません')
+        return redirect('customer_detail', pk=pk)
+    
     if request.method == 'POST':
-        try:
-            customer = Customer.objects.get(pk=pk)
-            customer_name = customer.name
-            customer.delete()
-            messages.success(request, f'顧客「{customer_name}」を削除しました')
-        except Customer.DoesNotExist:
-            messages.error(request, '顧客が見つかりません')
-        
+        customer_name = customer.name
+        customer.delete()
+        messages.success(request, f'顧客「{customer_name}」を削除しました')
         return redirect('customer_list')
     
     return redirect('customer_list')
@@ -468,17 +506,22 @@ def reservation_list(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
+    # 権限情報を取得
+    profile = get_user_permissions(request.user)
+
     return render(request, 'main/reservation_list.html', {
         'reservations': page_obj,
         'page_obj': page_obj,
-        'all_customers': all_customers,
-        'status_choices': status_choices,
         'date_from': date_from,
         'date_to': date_to,
         'time_from': time_from,
         'time_to': time_to,
         'selected_customers': customer_ids,
         'selected_statuses': statuses,
+        'all_customers': all_customers,
+        'status_choices': Reservation.STATUS_CHOICES,
+        'can_edit': profile.can_edit_reservation if profile else False,
+        'can_delete': profile.can_delete_reservation if profile else False,
     })
     
 # 予約一覧CSV出力
@@ -615,6 +658,12 @@ def reservation_add(request):
 def reservation_edit(request, pk):
     reservation = get_object_or_404(Reservation, pk=pk)
     
+    # 権限チェック
+    profile = get_user_permissions(request.user)
+    if not profile or not profile.can_edit_reservation:
+        messages.error(request, '予約を編集する権限がありません')
+        return redirect('reservation_detail', pk=pk)
+    
     if request.method == 'POST':
         customer_id = request.POST.get('customer')
         reservation_date = request.POST.get('reservation_date')
@@ -694,14 +743,27 @@ def reservation_edit(request, pk):
 @login_required
 def reservation_detail(request, pk):
     reservation = get_object_or_404(Reservation, pk=pk)
+    
+    # 権限情報を取得
+    profile = get_user_permissions(request.user)
+    
     return render(request, 'main/reservation_detail.html', {
         'reservation': reservation,
+        'can_edit': profile.can_edit_reservation if profile else False,
+        'can_delete': profile.can_delete_reservation if profile else False,
     })
     
 # 予約削除
 @login_required
 def reservation_delete(request, pk):
     reservation = get_object_or_404(Reservation, pk=pk)
+    
+    # 権限チェック
+    profile = get_user_permissions(request.user)
+    if not profile or not profile.can_delete_reservation:
+        messages.error(request, '予約を削除する権限がありません')
+        return redirect('reservation_detail', pk=pk)
+    
     reservation.delete()
     return redirect('reservation_list')
 
@@ -853,11 +915,9 @@ def public_booking_complete(request, pk):
 def public_booking_check(request):
     """予約確認画面"""
     reservations = None
-    email = ''
+    email = request.GET.get('email', '')
     
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        
+    if email:
         # メールアドレスで顧客を検索
         try:
             customer = Customer.objects.get(email=email)

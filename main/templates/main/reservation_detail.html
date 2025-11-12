@@ -90,9 +90,11 @@
 
 <!-- アクションボタン -->
 <div style="display: flex; gap: 10px; justify-content: center;">
+    {% if can_edit %}
     <a href="{% url 'reservation_edit' reservation.pk %}" style="text-decoration: none;">
         <button style="background: #667eea; min-width: 150px;">編集</button>
     </a>
+    {% endif %}
     <a href="{% url 'reservation_list' %}" style="text-decoration: none;">
         <button style="background: #6c757d; min-width: 150px;">一覧に戻る</button>
     </a>

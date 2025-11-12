@@ -86,3 +86,22 @@ class Reservation(models.Model):
     
     def __str__(self):
         return f"{self.customer.name} - {self.reservation_date} {self.reservation_time}"
+    
+# ユーザー権限管理
+class UserProfile(models.Model):
+    user = models.OneToOneField(Administrator, on_delete=models.CASCADE, related_name='profile')
+    
+    # 顧客管理権限
+    can_edit_customer = models.BooleanField(default=True, verbose_name='顧客編集権限')
+    can_delete_customer = models.BooleanField(default=True, verbose_name='顧客削除権限')
+    
+    # 予約管理権限
+    can_edit_reservation = models.BooleanField(default=True, verbose_name='予約編集権限')
+    can_delete_reservation = models.BooleanField(default=True, verbose_name='予約削除権限')
+    
+    class Meta:
+        verbose_name = 'ユーザー権限'
+        verbose_name_plural = 'ユーザー権限'
+    
+    def __str__(self):
+        return f'{self.user.user.username}の権限'

@@ -43,13 +43,17 @@
     {% endif %}
     
     <div style="margin-top: 20px; display: flex; gap: 10px;">
+        {% if can_edit %}
         <a href="{% url 'customer_edit' customer.pk %}" style="text-decoration: none;">
             <button style="background: #667eea;">編集</button>
         </a>
+        {% endif %}
+        {% if can_delete %}
         <form method="POST" action="{% url 'customer_delete' customer.pk %}" style="display: inline;" onsubmit="return confirm('本当に削除しますか？');">
             {% csrf_token %}
             <button type="submit" style="background: #dc3545;">削除</button>
         </form>
+        {% endif %}
     </div>
 </div>
 

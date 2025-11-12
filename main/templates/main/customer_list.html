@@ -48,7 +48,7 @@
             <button type="button" style="width: auto; padding: 10px 30px; background: #6c757d;">クリア</button>
         </a>
         {% endif %}
-        <a href="{% url 'customer_list_csv' %}?query={{ query }}" style="text-decoration: none;">
+        <a href="{% url 'customer_list_csv' %}?search_name={{ search_name }}&search_phone={{ search_phone }}&search_email={{ search_email }}" style="text-decoration: none;">
             <button type="button" style="width: auto; padding: 10px 30px; background: #28a745;">📥 CSV出力</button>
         </a>
     </div>
@@ -78,8 +78,10 @@
                         <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
                             <a href="{% url 'customer_detail' customer.id %}" 
                                 style="color: #667eea; text-decoration: none;">詳細</a>
+                            {% if can_edit %}
                             <a href="{% url 'customer_edit' customer.id %}" 
                                 style="color: #28a745; text-decoration: none;">編集</a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
@@ -92,23 +94,23 @@
     {% if page_obj.has_other_pages %}
     <div style="display: flex; justify-content: center; align-items: center; margin-top: 30px; gap: 10px; background: white; padding: 15px;">
         {% if page_obj.has_previous %}
-            <a href="?page=1{% if query %}&query={{ query }}{% endif %}" style="text-decoration: none;">
+            <a href="?page=1&search_name={{ search_name }}&search_phone={{ search_phone }}&search_email={{ search_email }}" style="text-decoration: none;">
                 <button style="padding: 8px 12px; font-size: 14px;">最初</button>
             </a>
-            <a href="?page={{ page_obj.previous_page_number }}{% if query %}&query={{ query }}{% endif %}" style="text-decoration: none;">
+            <a href="?page={{ page_obj.previous_page_number }}&search_name={{ search_name }}&search_phone={{ search_phone }}&search_email={{ search_email }}" style="text-decoration: none;">
                 <button style="padding: 8px 12px; font-size: 14px;">前へ</button>
             </a>
         {% endif %}
-        
+    
         <span style="color: #333; font-weight: bold; padding: 0 15px;">
             ページ {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
         </span>
-        
+    
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if query %}&query={{ query }}{% endif %}" style="text-decoration: none;">
+            <a href="?page={{ page_obj.next_page_number }}&search_name={{ search_name }}&search_phone={{ search_phone }}&search_email={{ search_email }}" style="text-decoration: none;">
                 <button style="padding: 8px 12px; font-size: 14px;">次へ</button>
             </a>
-            <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&query={{ query }}{% endif %}" style="text-decoration: none;">
+            <a href="?page={{ page_obj.paginator.num_pages }}&search_name={{ search_name }}&search_phone={{ search_phone }}&search_email={{ search_email }}" style="text-decoration: none;">
                 <button style="padding: 8px 12px; font-size: 14px;">最後</button>
             </a>
         {% endif %}
