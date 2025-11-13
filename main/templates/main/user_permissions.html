@@ -1,0 +1,60 @@
+{% extends 'main/base.html' %}
+
+{% block title %}ユーザー権限設定{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>ユーザー権限設定</h2>
+    <a href="{% url 'admin-home' %}" style="text-decoration: none;">
+        <button style="background: #667eea; padding: 8px 20px;">🏠 ホーム</button>
+    </a>
+</div>
+
+<div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                <th style="padding: 12px; text-align: left;">ユーザー名</th>
+                <th style="padding: 12px; text-align: center;">顧客編集</th>
+                <th style="padding: 12px; text-align: center;">顧客削除</th>
+                <th style="padding: 12px; text-align: center;">予約編集</th>
+                <th style="padding: 12px; text-align: center;">予約削除</th>
+                <th style="padding: 12px; text-align: center;">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in user_permissions_list %}
+            <tr style="border-bottom: 1px solid #dee2e6;">
+                <form method="POST" action="{% url 'user_permission_update' item.admin.pk %}">
+                    {% csrf_token %}
+                    <td style="padding: 12px;">
+                        <strong>{{ item.admin.user.username }}</strong>
+                    </td>
+                    <td style="padding: 12px; text-align: center;">
+                        <input type="checkbox" name="can_edit_customer" {% if item.profile.can_edit_customer %}checked{% endif %}>
+                    </td>
+                    <td style="padding: 12px; text-align: center;">
+                        <input type="checkbox" name="can_delete_customer" {% if item.profile.can_delete_customer %}checked{% endif %}>
+                    </td>
+                    <td style="padding: 12px; text-align: center;">
+                        <input type="checkbox" name="can_edit_reservation" {% if item.profile.can_edit_reservation %}checked{% endif %}>
+                    </td>
+                    <td style="padding: 12px; text-align: center;">
+                        <input type="checkbox" name="can_delete_reservation" {% if item.profile.can_delete_reservation %}checked{% endif %}>
+                    </td>
+                    <td style="padding: 12px; text-align: center;">
+                        <button type="submit" style="background: #28a745; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer;">
+                            更新
+                        </button>
+                    </td>
+                </form>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 5px;">
+    <strong>💡 ヒント：</strong> チェックボックスをオン/オフして「更新」ボタンをクリックすると、そのユーザーの権限が変更されます。
+</div>
+{% endblock %}

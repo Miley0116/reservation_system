@@ -14,6 +14,8 @@ urlpatterns = [
     path('admin-login/', views.login_view, name='login'),
     path('admin-logout/', views.logout_view, name='logout'),
     path('admin-home/', views.home, name='admin-home'),
+    path('user-permissions/', views.user_permissions, name='user_permissions'),
+    path('user-permissions/<int:admin_id>/update/', views.user_permission_update, name='user_permission_update'),
     
     # 顧客管理
     path('customers/', views.customer_list, name='customer_list'),

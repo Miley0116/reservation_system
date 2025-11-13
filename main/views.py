@@ -943,7 +943,11 @@ def public_booking_check(request):
     
 # 一般ユーザー向け予約詳細
 def public_booking_detail(request, pk):
-    reservation = get_object_or_404(Reservation, pk=pk)
+    try:
+        reservation = Reservation.objects.get(pk=pk)
+    except Reservation.DoesNotExist:
+        messages.error(request, 'ご指定の予約が見つかりませんでした')
+        return redirect('public_booking_check')
     
     # セッションで確認済みのメールアドレスを取得
     verified_email = request.session.get('verified_email')
@@ -956,3 +960,42 @@ def public_booking_detail(request, pk):
     return render(request, 'main/public_booking_detail.html', {
         'reservation': reservation,
     })
+    
+# 権限設定画面
+@login_required
+def user_permissions(request):
+    """ユーザー権限設定画面"""
+    # 全管理者とその権限を取得
+    administrators = Administrator.objects.all()
+    
+    user_permissions_list = []
+    for admin in administrators:
+        profile, created = UserProfile.objects.get_or_create(user=admin)
+        user_permissions_list.append({
+            'admin': admin,
+            'profile': profile,
+        })
+    
+    return render(request, 'main/user_permissions.html', {
+        'user_permissions_list': user_permissions_list,
+    })
+
+
+# 権限更新
+@login_required
+def user_permission_update(request, admin_id):
+    """ユーザー権限更新"""
+    if request.method == 'POST':
+        admin = get_object_or_404(Administrator, pk=admin_id)
+        profile, created = UserProfile.objects.get_or_create(user=admin)
+        
+        # チェックボックスの値を取得（チェックされていない場合はFalse）
+        profile.can_edit_customer = 'can_edit_customer' in request.POST
+        profile.can_delete_customer = 'can_delete_customer' in request.POST
+        profile.can_edit_reservation = 'can_edit_reservation' in request.POST
+        profile.can_delete_reservation = 'can_delete_reservation' in request.POST
+        profile.save()
+        
+        messages.success(request, f'{admin.user.username} の権限を更新しました')
+    
+    return redirect('user_permissions')
