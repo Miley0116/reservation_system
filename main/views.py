@@ -169,6 +169,14 @@ def home(request):
     total_customers = Customer.objects.count()
     total_reservations = Reservation.objects.count()
     
+    # 権限情報を取得（全権管理者かどうかチェック）
+    profile = get_user_permissions(request.user)
+    is_super_admin = (profile and 
+                      profile.can_edit_customer and 
+                      profile.can_delete_customer and 
+                      profile.can_edit_reservation and 
+                      profile.can_delete_reservation)
+    
     context = {
         'today_reservations_count': today_reservations_count,
         'week_reservations_count': week_reservations_count,
@@ -179,6 +187,7 @@ def home(request):
         'recent_customers': recent_customers,
         'total_customers': total_customers,
         'total_reservations': total_reservations,
+        'is_super_admin': is_super_admin,
     }
     
     return render(request, 'main/home.html', context)
