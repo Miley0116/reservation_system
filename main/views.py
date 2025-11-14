@@ -641,7 +641,8 @@ def reservation_add(request):
             service=service,
             duration=duration,
             status=status,
-            memo=memo
+            memo=memo,
+            reference_image=request.FILES.get('reference_image')
         )
         messages.success(request, '予約を登録しました')
         return redirect('reservation_list')
@@ -724,6 +725,11 @@ def reservation_edit(request, pk):
         reservation.duration = duration
         reservation.status = status
         reservation.memo = memo
+
+        # 画像がアップロードされた場合
+        if 'reference_image' in request.FILES:
+            reservation.reference_image = request.FILES['reference_image']
+
         reservation.save()
         
         # ステータスが完了になった場合、顧客の最終来店日を更新
@@ -904,7 +910,8 @@ def public_booking(request):
             service=service,
             duration=duration,
             status='pending',
-            memo=memo
+            memo=memo,
+            reference_image=request.FILES.get('reference_image')
         )
         
         # 予約完了画面へリダイレクト

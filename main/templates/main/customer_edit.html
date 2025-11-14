@@ -2,6 +2,17 @@
 
 {% block title %}顧客編集{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'admin-home' %}">ホーム</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'customer_list' %}">顧客一覧</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'customer_detail' customer.pk %}">顧客詳細</a></li>
+        <li class="breadcrumb-item active">編集</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <h2>顧客編集</h2>
 

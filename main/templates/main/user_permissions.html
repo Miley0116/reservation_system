@@ -2,6 +2,15 @@
 
 {% block title %}ユーザー権限設定{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'admin-home' %}">ホーム</a></li>
+        <li class="breadcrumb-item active">権限設定</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2>ユーザー権限設定</h2>

@@ -2,6 +2,16 @@
 
 {% block title %}予約詳細{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'admin-home' %}">ホーム</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'reservation_list' %}">予約一覧</a></li>
+        <li class="breadcrumb-item active">予約詳細</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2>予約詳細</h2>
@@ -56,6 +66,16 @@
     <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid #eee;">
         <p style="color: #666; font-size: 14px; margin-bottom: 8px;">備考</p>
         <p style="color: #333; line-height: 1.6;">{{ reservation.memo }}</p>
+    </div>
+    {% endif %}
+
+    <!-- 参考画像 -->
+    {% if reservation.reference_image %}
+    <div class="form-group">
+        <label>参考画像</label>
+        <div style="margin-top: 10px;">
+            <img src="{{ reservation.reference_image.url }}" alt="参考画像" style="max-width: 100%; max-height: 500px; border-radius: 10px; border: 2px solid #ddd; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        </div>
     </div>
     {% endif %}
 </div>

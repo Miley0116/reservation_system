@@ -226,6 +226,16 @@
                 <div class="info-value" style="font-weight: normal; line-height: 1.6;">{{ reservation.memo }}</div>
             </div>
             {% endif %}
+
+            <!-- 参考画像 -->
+            {% if reservation.reference_image %}
+            <div class="memo-section">
+                <div class="info-label">参考画像</div>
+                <div style="margin-top: 10px;">
+                    <img src="{{ reservation.reference_image.url }}" alt="参考画像" style="max-width: 100%; max-height: 400px; border-radius: 10px; border: 2px solid #ddd;">
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- 顧客情報 -->

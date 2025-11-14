@@ -76,6 +76,7 @@ class Reservation(models.Model):
     duration = models.IntegerField(default=60, verbose_name='所要時間（分）')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='ステータス')
     memo = models.TextField(blank=True, verbose_name='備考')
+    reference_image = models.ImageField(upload_to='reference_images/', blank=True, null=True, verbose_name='参考画像')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
     
@@ -92,12 +93,13 @@ class UserProfile(models.Model):
     user = models.OneToOneField(Administrator, on_delete=models.CASCADE, related_name='profile')
     
     # 顧客管理権限
-    can_edit_customer = models.BooleanField(default=True, verbose_name='顧客編集権限')
-    can_delete_customer = models.BooleanField(default=True, verbose_name='顧客削除権限')
-    
+    can_edit_customer = models.BooleanField(default=False, verbose_name='顧客編集権限')
+    can_delete_customer = models.BooleanField(default=False, verbose_name='顧客削除権限')
+
     # 予約管理権限
-    can_edit_reservation = models.BooleanField(default=True, verbose_name='予約編集権限')
-    can_delete_reservation = models.BooleanField(default=True, verbose_name='予約削除権限')
+    can_edit_reservation = models.BooleanField(default=False, verbose_name='予約編集権限')
+    can_delete_reservation = models.BooleanField(default=False, verbose_name='予約削除権限')
+    
     
     class Meta:
         verbose_name = 'ユーザー権限'

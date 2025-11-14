@@ -2,6 +2,16 @@
 
 {% block title %}顧客新規登録{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'admin-home' %}">ホーム</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'customer_list' %}">顧客一覧</a></li>
+        <li class="breadcrumb-item active">新規登録</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <h2>顧客新規登録</h2>
 

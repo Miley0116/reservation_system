@@ -167,7 +167,7 @@
         </div>
         {% endif %}
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data" style="margin-top: 30px;">
             {% csrf_token %}
 
             <div class="form-group">
@@ -208,6 +208,13 @@
             <div class="form-group">
                 <label for="memo">備考</label>
                 <textarea id="memo" name="memo" placeholder="特記事項があればご記入ください">{{ memo }}</textarea>
+            </div>
+
+            <!-- 参考画像 -->
+            <div class="form-group">
+                <label for="reference_image">参考画像（任意）</label>
+                <input type="file" id="reference_image" name="reference_image" accept="image/*" style="padding: 8px;">
+                <small style="display: block; color: #666; margin-top: 5px;">ご希望のヘアスタイルなど、参考となる画像をアップロードしてください</small>
             </div>
 
             <button type="submit">予約を確定する</button>
