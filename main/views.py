@@ -883,19 +883,38 @@ def public_booking(request):
             })
         
         # 顧客の存在確認または作成
-        customer, created = Customer.objects.get_or_create(
-            email=email,
-            defaults={
+        try:
+            customer, created = Customer.objects.get_or_create(
+                email=email,
+                defaults={
+                    'name': name,
+                    'phone_number': phone_number,
+                }
+            )
+    
+            # 既存顧客の場合は情報を更新
+            if not created:
+                customer.name = name
+                customer.phone_number = phone_number
+                customer.full_clean()  # バリデーション実行
+                customer.save()
+            else:
+                customer.full_clean()  # 新規顧客もバリデーション
+        
+        except ValidationError as e:
+            messages.error(request, str(e.message_dict.get('phone_number', ['電話番号の形式が正しくありません'])[0]))
+            return render(request, 'main/public_booking.html', {
+                'today': today,
                 'name': name,
                 'phone_number': phone_number,
-            }
-        )
-        
-        # 既存顧客の場合は情報を更新
-        if not created:
-            customer.name = name
-            customer.phone_number = phone_number
-            customer.save()
+                'email': email,
+                'reservation_date': reservation_date,
+                'reservation_time': reservation_time,
+                'service': service,
+                'duration': duration,
+                'memo': memo,
+                'has_uploaded_image': 'reference_image' in request.FILES,
+            })
         
         # 予約作成
         reservation = Reservation.objects.create(
