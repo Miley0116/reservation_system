@@ -9,6 +9,8 @@ from django.core.exceptions import ValidationError
 from .models import Administrator, Customer, Reservation, UserProfile
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import base64
+from django.core.files.base import ContentFile
 
 # ユーザー作成時に自動でUserProfileを作成
 @receiver(post_save, sender=Administrator)
@@ -852,18 +854,38 @@ def public_booking(request):
         phone_number = request.POST.get('phone_number', '').strip()
         email = request.POST.get('email', '').strip()
 
+        # 画像を一時保存する関数
+        def save_temp_image():
+            if 'reference_image' in request.FILES:
+                image_file = request.FILES['reference_image']
+                image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                request.session['temp_image_data'] = image_data
+                request.session['temp_image_name'] = image_file.name
+        
         # スペースだけの入力をチェック
         if not name:
+            save_temp_image()
             messages.error(request, 'お名前を入力してください')
-            return render(request, 'main/public_booking.html', {'today': today})
+            return render(request, 'main/public_booking.html', {
+                'today': today,
+                'has_uploaded_image': 'reference_image' in request.FILES or 'temp_image_data' in request.session,
+            })
     
         if not phone_number:
+            save_temp_image()
             messages.error(request, '電話番号を入力してください')
-            return render(request, 'main/public_booking.html', {'today': today})
+            return render(request, 'main/public_booking.html', {
+                'today': today,
+                'has_uploaded_image': 'reference_image' in request.FILES or 'temp_image_data' in request.session,
+            })
     
         if not email:
+            save_temp_image()
             messages.error(request, 'メールアドレスを入力してください')
-            return render(request, 'main/public_booking.html', {'today': today})
+            return render(request, 'main/public_booking.html', {
+                'today': today,
+                'has_uploaded_image': 'reference_image' in request.FILES or 'temp_image_data' in request.session,
+            })
         reservation_date = request.POST.get('reservation_date')
         reservation_time = request.POST.get('reservation_time')
         service = request.POST.get('service')
@@ -885,9 +907,12 @@ def public_booking(request):
                 request, 
                 f'申し訳ございません。ご希望の時間帯は既に予約が入っております。別の時間帯をお選びください。'
             )
-            # 画像を保持
+            # 画像を一時保存
             if 'reference_image' in request.FILES:
-                request.session['temp_image_name'] = request.FILES['reference_image'].name
+                image_file = request.FILES['reference_image']
+                image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                request.session['temp_image_data'] = image_data
+                request.session['temp_image_name'] = image_file.name
             return render(request, 'main/public_booking.html', {
                 'today': today,
                 'name': name,
@@ -898,7 +923,7 @@ def public_booking(request):
                 'service': service,
                 'duration': duration,
                 'memo': memo,
-                'has_uploaded_image': 'reference_image' in request.FILES,
+                'has_uploaded_image': 'reference_image' in request.FILES or 'temp_image_data' in request.session,
             })
         
         # 顧客の存在確認または作成
@@ -921,6 +946,7 @@ def public_booking(request):
                 customer.full_clean()  # 新規顧客もバリデーション
         
         except ValidationError as e:
+            save_temp_image()
             messages.error(request, str(e.message_dict.get('phone_number', ['電話番号の形式が正しくありません'])[0]))
             return render(request, 'main/public_booking.html', {
                 'today': today,
@@ -932,8 +958,18 @@ def public_booking(request):
                 'service': service,
                 'duration': duration,
                 'memo': memo,
-                'has_uploaded_image': 'reference_image' in request.FILES,
+                'has_uploaded_image': 'reference_image' in request.FILES or 'temp_image_data' in request.session,
             })
+        
+        # 画像処理：新規アップロードまたはセッションから復元
+        reference_image = None
+        if 'reference_image' in request.FILES:
+            reference_image = request.FILES['reference_image']
+        elif 'temp_image_data' in request.session:
+            # セッションから画像を復元
+            image_data = base64.b64decode(request.session['temp_image_data'])
+            image_name = request.session['temp_image_name']
+            reference_image = ContentFile(image_data, name=image_name)
         
         # 予約作成
         reservation = Reservation.objects.create(
@@ -944,10 +980,12 @@ def public_booking(request):
             duration=duration,
             status='pending',
             memo=memo,
-            reference_image=request.FILES.get('reference_image')
+            reference_image=reference_image
         )
         
         # セッションをクリア
+        if 'temp_image_data' in request.session:
+            del request.session['temp_image_data']
         if 'temp_image_name' in request.session:
             del request.session['temp_image_name']
         
