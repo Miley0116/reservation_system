@@ -302,15 +302,24 @@ def customer_add(request):
         
         try:
             # 顧客作成
-            customer = Customer.objects.create(
+            customer = Customer(
                 name=name,
                 phone_number=phone_number,
                 email=email,
                 memo=memo,
                 last_visit_date=last_visit_date if last_visit_date else None
             )
+            customer.full_clean()  # バリデーション実行
+            customer.save()
             messages.success(request, f'顧客「{name}」を登録しました')
             return redirect('customer_list')
+        except ValidationError as e:
+            phone_error = e.message_dict.get('phone_number', [''])[0]
+            if phone_error:
+                messages.error(request, phone_error)
+            else:
+                messages.error(request, '入力内容に誤りがあります')
+            return render(request, 'main/customer_add.html', context)
         except Exception as e:
             messages.error(request, f'登録に失敗しました: {str(e)}')
             return render(request, 'main/customer_add.html', context)
@@ -395,7 +404,17 @@ def customer_edit(request, pk):
         customer.memo = request.POST.get('memo', '')
         last_visit_date = request.POST.get('last_visit_date')
         customer.last_visit_date = last_visit_date if last_visit_date else None
-        customer.save()
+
+        try:
+            customer.full_clean()  # バリデーション実行
+            customer.save()
+        except ValidationError as e:
+            phone_error = e.message_dict.get('phone_number', [''])[0]
+            if phone_error:
+                messages.error(request, phone_error)
+            else:
+                messages.error(request, '入力内容に誤りがあります')
+            return render(request, 'main/customer_edit.html', {'customer': customer})
         
         messages.success(request, f'顧客「{customer.name}」を更新しました')
         return redirect('customer_detail', pk=pk)
