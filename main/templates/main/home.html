@@ -114,33 +114,6 @@
     </div>
 </div>
 
-<!-- 管理メニュー -->
-<div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">
-    <a href="{% url 'customer_list' %}" style="text-decoration: none; flex: 0 0 auto;">
-        <button style="background: #28a745; min-width: 180px;">👥 顧客管理</button>
-    </a>
-
-    <a href="{% url 'reservation_list' %}" style="text-decoration: none; flex: 0 0 auto;">
-        <button style="background: #007bff; min-width: 180px;">📅 予約管理</button>
-    </a>
-
-    <a href="{% url 'reservation_calendar' %}" style="text-decoration: none; flex: 0 0 auto;">
-        <button style="background: #667eea; min-width: 180px;">📆 カレンダー</button>
-    </a>
-
-    {% if is_super_admin %}
-    <a href="{% url 'user_permissions' %}" style="text-decoration: none; flex: 0 0 auto;">
-        <button style="background: #f5576c; min-width: 180px;">🔐 権限設定</button>
-    </a>
-    {% endif %}
-</div>
-<div style="display: flex; justify-content: center; margin-top: 30px;">
-    <form method="POST" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit" style="background: #dc3545; min-width: 180px;">ログアウト</button>
-    </form>
-</div>
-
 <style>
 /* レスポンシブ対応 */
 
@@ -206,6 +179,63 @@
         font-size: 14px !important;
     }
 }
+
+/* 上部メニューのレスポンシブ対応 */
+        nav {
+            overflow-x: auto;
+        }
+        
+        @media (max-width: 768px) {
+            nav {
+                padding: 8px 10px !important;
+            }
+            
+            nav > div > div:first-child {
+                gap: 8px !important;
+            }
+            
+            nav a, nav button {
+                font-size: 11px !important;
+                padding: 5px 6px !important;
+            }
+            
+            nav span {
+                font-size: 11px !important;
+            }
+            
+            /* 小画面では絵文字を非表示 */
+            nav a::before {
+                content: none !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            nav {
+                padding: 6px 8px !important;
+            }
+            
+            nav > div > div:first-child {
+                gap: 5px !important;
+            }
+            
+            nav a[href*='admin-home'] {
+                font-size: 10px !important;
+            }
+            
+            nav a:not([href*='admin-home']) {
+                font-size: 9px !important;
+                padding: 4px 5px !important;
+            }
+            
+            nav button {
+                font-size: 9px !important;
+                padding: 4px 6px !important;
+            }
+            
+            nav span {
+                display: none !important;
+            }
+        }
 </style>
 
 {% endblock %}

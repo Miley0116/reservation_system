@@ -71,8 +71,8 @@
 
     <!-- 参考画像 -->
     {% if reservation.reference_image %}
-    <div class="form-group">
-        <label>参考画像</label>
+    <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid #eee;">
+        <p style="color: #666; font-size: 14px; margin-bottom: 8px;">参考画像</p>
         <div style="margin-top: 10px;">
             <img src="{{ reservation.reference_image.url }}" alt="参考画像" style="max-width: 100%; max-height: 500px; border-radius: 10px; border: 2px solid #ddd; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         </div>

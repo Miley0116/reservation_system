@@ -169,14 +169,6 @@ def home(request):
     total_customers = Customer.objects.count()
     total_reservations = Reservation.objects.count()
     
-    # 権限情報を取得（全権管理者かどうかチェック）
-    profile = get_user_permissions(request.user)
-    is_super_admin = (profile and 
-                      profile.can_edit_customer and 
-                      profile.can_delete_customer and 
-                      profile.can_edit_reservation and 
-                      profile.can_delete_reservation)
-    
     context = {
         'today_reservations_count': today_reservations_count,
         'week_reservations_count': week_reservations_count,
@@ -187,7 +179,6 @@ def home(request):
         'recent_customers': recent_customers,
         'total_customers': total_customers,
         'total_reservations': total_reservations,
-        'is_super_admin': is_super_admin,
     }
     
     return render(request, 'main/home.html', context)
@@ -875,6 +866,9 @@ def public_booking(request):
                 request, 
                 f'申し訳ございません。ご希望の時間帯は既に予約が入っております。別の時間帯をお選びください。'
             )
+            # 画像を保持
+            if 'reference_image' in request.FILES:
+                request.session['temp_image_name'] = request.FILES['reference_image'].name
             return render(request, 'main/public_booking.html', {
                 'today': today,
                 'name': name,
@@ -885,6 +879,7 @@ def public_booking(request):
                 'service': service,
                 'duration': duration,
                 'memo': memo,
+                'has_uploaded_image': 'reference_image' in request.FILES,
             })
         
         # 顧客の存在確認または作成
@@ -913,6 +908,10 @@ def public_booking(request):
             memo=memo,
             reference_image=request.FILES.get('reference_image')
         )
+        
+        # セッションをクリア
+        if 'temp_image_name' in request.session:
+            del request.session['temp_image_name']
         
         # 予約完了画面へリダイレクト
         return redirect('public_booking_complete', pk=reservation.pk)

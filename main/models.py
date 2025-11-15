@@ -1,6 +1,31 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
+import re
+
+def validate_phone_number(value):
+    """電話番号のバリデーション"""
+    # 許可されるパターン
+    patterns = [
+        r'^\d{2}-\d{4}-\d{4}$',      # 00-0000-0000
+        r'^\d{4}-\d{2}-\d{4}$',      # 0000-00-0000
+        r'^0120-\d{3}-\d{3}$',       # 0120-000-000
+    ]
+    
+    for pattern in patterns:
+        if re.match(pattern, value):
+            return
+    
+    raise ValidationError('電話番号は「00-0000-0000」「0000-00-0000」「0120-000-000」のいずれかの形式で入力してください')
+
+def validate_image_extension(value):
+    """画像ファイルの拡張子をチェック"""
+    import os
+    ext = os.path.splitext(value.name)[1].lower()
+    valid_extensions = ['.jpg', '.jpeg', '.png', '.pdf']
+    if ext not in valid_extensions:
+        raise ValidationError('画像ファイルはJPG、PNG、PDF形式のみアップロード可能です')
 
 class Administrator(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -16,13 +41,8 @@ class Customer(models.Model):
         regex=r'^0\d{1,4}-?\d{1,4}-?\d{3,4}$',
         message="正しい電話番号形式で入力してください。（例: 090-1234-5678、03-1234-5678、0120-123-456）"
     )
-    
     name = models.CharField(max_length=100, verbose_name="顧客名")
-    phone_number = models.CharField(
-        max_length=20, 
-        verbose_name="電話番号",
-        validators=[phone_regex]
-    )
+    phone_number = models.CharField(max_length=20, unique=True, validators=[validate_phone_number], verbose_name='電話番号')
     email = models.EmailField(unique=True, verbose_name="メールアドレス")  # 追加
     memo = models.TextField(blank=True, verbose_name="メモ")
     last_visit_date = models.DateField(null=True, blank=True, verbose_name="最終来店日")
@@ -76,7 +96,7 @@ class Reservation(models.Model):
     duration = models.IntegerField(default=60, verbose_name='所要時間（分）')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='ステータス')
     memo = models.TextField(blank=True, verbose_name='備考')
-    reference_image = models.ImageField(upload_to='reference_images/', blank=True, null=True, verbose_name='参考画像')
+    reference_image = models.ImageField(upload_to='reference_images/', blank=True, null=True, validators=[validate_image_extension], verbose_name='参考画像')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
     

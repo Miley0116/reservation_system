@@ -183,9 +183,88 @@
             color: #333;
             font-weight: bold;
         }
+
+        /* 上部メニューのレスポンシブ対応 */
+        nav {
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        
+        nav > div {
+            min-width: max-content;
+        }
+        
+        @media (max-width: 768px) {
+            nav {
+                padding: 8px 10px !important;
+            }
+            
+            nav > div {
+                gap: 15px !important;
+            }
+            
+            nav > div > div:first-child {
+                gap: 8px !important;
+                flex-wrap: nowrap !important;
+            }
+            
+            nav a, nav button {
+                font-size: 11px !important;
+                padding: 5px 8px !important;
+                white-space: nowrap !important;
+            }
+            
+            nav span {
+                font-size: 11px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            nav {
+                padding: 6px 8px !important;
+            }
+            
+            nav > div > div:first-child {
+                gap: 6px !important;
+            }
+            
+            nav a, nav button {
+                font-size: 10px !important;
+                padding: 4px 6px !important;
+            }
+            
+            nav span {
+                font-size: 10px !important;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- 上部固定メニュー -->
+    {% if user.is_authenticated %}
+    <nav style="position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 1000; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <a href="{% url 'admin-home' %}" style="color: white; text-decoration: none; font-weight: bold; font-size: 18px;">予約管理システム</a>
+            <a href="{% url 'customer_list' %}" style="color: white; text-decoration: none; padding: 8px 15px; border-radius: 5px; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='transparent'">👥 顧客管理</a>
+            <a href="{% url 'reservation_list' %}" style="color: white; text-decoration: none; padding: 8px 15px; border-radius: 5px; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='transparent'">📅 予約管理</a>
+            <a href="{% url 'reservation_calendar' %}" style="color: white; text-decoration: none; padding: 8px 15px; border-radius: 5px; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='transparent'">📆 カレンダー</a>
+            {% if is_super_admin %}
+            <a href="{% url 'user_permissions' %}" style="color: white; text-decoration: none; padding: 8px 15px; border-radius: 5px; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='transparent'">🔐 権限設定</a>
+            {% endif %}
+        </div>
+        <div>
+            <span style="color: white; margin-right: 20px;">{{ user.username }} さん</span>
+            <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 8px 20px; border-radius: 5px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='white'; this.style.color='#667eea'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.color='white'">ログアウト</button>
+            </form>
+        </div>
+    </nav>
+    
+    <!-- メニュー分のスペース -->
+    <div style="height: 70px;"></div>
+    {% endif %}
+
     <div class="container">
         {% if messages %}
         {% for message in messages %}
