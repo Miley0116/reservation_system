@@ -213,18 +213,80 @@
             <!-- 参考画像 -->
             <div class="form-group">
                 <label for="reference_image">参考画像（任意）</label>
-                {% if has_uploaded_image %}
-                <div style="padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; margin-bottom: 10px; color: #155724;">
-                    ✓ 画像がアップロードされています。新しい画像を選択すると上書きされます。
+                
+                <!-- セッションから復元された画像のサムネイル -->
+                {% if temp_image_data %}
+                <div id="session-preview" style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 8px;">
+                    <div style="margin-bottom: 10px;">
+                        <strong>アップロード済み:</strong> {{ temp_image_name }}
+                    </div>
+                    <img src="data:image/jpeg;base64,{{ temp_image_data }}" alt="プレビュー" 
+                        style="max-width: 300px; max-height: 300px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="margin-top: 10px;">
+                        <button type="button" onclick="clearSessionImage()"
+                            style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            画像をクリア
+                        </button>
+                    </div>
                 </div>
+
+                <script>
+                function clearSessionImage() {
+                    if (confirm('アップロードした画像をクリアしてもよろしいですか？')) {
+                        fetch('{% url "clear_temp_image" %}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}',
+                            },
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // 画像部分だけを非表示
+                                document.getElementById('session-preview').style.display = 'none';
+                            }
+                        });
+                    }
+                }
+                </script>
                 {% endif %}
-                <input type="file" id="reference_image" name="reference_image" accept="image/*,.pdf" style="padding: 8px;">
-                <small style="display: block; color: #666; margin-top: 5px;">ご希望のヘアスタイルなど、参考となる画像をアップロードしてください（JPG、PNG、PDF形式）</small>
-            </div>
 
-            <button type="submit">予約を確定する</button>
-        </form>
+                <input type="file" id="reference_image" name="reference_image" accept="image/*,.pdf" 
+                    style="padding: 8px; width: 100%; border: 2px solid #ddd; border-radius: 5px;">
 
+                <!-- 新規選択時のプレビュー -->
+                <div id="new-image-preview" style="display: none; margin-top: 15px; padding: 15px; background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 8px;">
+                    <div style="margin-bottom: 10px;">
+                        <strong>選択中:</strong> <span id="preview-filename"></span>
+                    </div>
+                    <img id="preview-image" src="" alt="プレビュー" 
+                        style="max-width: 300px; max-height: 300px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                </div>
+
+                <script>
+                document.getElementById('reference_image').addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            document.getElementById('preview-image').src = e.target.result;
+                            document.getElementById('preview-filename').textContent = file.name;
+                            document.getElementById('new-image-preview').style.display = 'block';
+                            const sessionPreview = document.getElementById('session-preview');
+                            if (sessionPreview) sessionPreview.style.display = 'none';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+                </script>
+
+                <small style="display: block; color: #666; margin-top: 5px;">
+                    ご希望のヘアスタイルなど、参考となる画像をアップロードしてください（JPG、PNG、PDF形式、10MB以下）
+                </small>
+                </div>
+
+                <button type="submit">予約を確定する</button>
+                </form>
         <script>
         // 日付入力のカスタムバリデーションメッセージ
         document.addEventListener('DOMContentLoaded', function() {

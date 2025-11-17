@@ -221,18 +221,19 @@
             </div>
 
             {% if reservation.memo %}
-            <div class="memo-section">
+            <div class="info-item">
                 <div class="info-label">備考</div>
-                <div class="info-value" style="font-weight: normal; line-height: 1.6;">{{ reservation.memo }}</div>
+                <div class="info-value">{{ reservation.memo }}</div>
             </div>
             {% endif %}
 
             <!-- 参考画像 -->
             {% if reservation.reference_image %}
-            <div class="memo-section">
+            <div class="info-item">
                 <div class="info-label">参考画像</div>
-                <div style="margin-top: 10px;">
-                    <img src="{{ reservation.reference_image.url }}" alt="参考画像" style="max-width: 100%; max-height: 400px; border-radius: 10px; border: 2px solid #ddd;">
+                <div class="info-value">
+                    <img src="{{ reservation.reference_image.url }}" alt="参考画像" 
+                        style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 10px;">
                 </div>
             </div>
             {% endif %}

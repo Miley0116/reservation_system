@@ -27,6 +27,12 @@ def validate_image_extension(value):
     valid_extensions = ['.jpg', '.jpeg', '.png', '.pdf']
     if ext not in valid_extensions:
         raise ValidationError('画像ファイルはJPG、PNG、PDF形式のみアップロード可能です')
+    
+def validate_image_size(value):
+    """画像ファイルのサイズをチェック（10MB以下）"""
+    filesize = value.size
+    if filesize > 10 * 1024 * 1024:  # 10MB
+        raise ValidationError('画像ファイルは10MB以下にしてください')
 
 class Administrator(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -97,7 +103,7 @@ class Reservation(models.Model):
     duration = models.IntegerField(default=60, verbose_name='所要時間（分）')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='ステータス')
     memo = models.TextField(blank=True, verbose_name='備考')
-    reference_image = models.ImageField(upload_to='reference_images/', blank=True, null=True, validators=[validate_image_extension], verbose_name='参考画像')
+    reference_image = models.ImageField(upload_to='reference_images/', blank=True, null=True, validators=[validate_image_extension, validate_image_size], verbose_name='参考画像')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
     

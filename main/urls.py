@@ -7,6 +7,7 @@ urlpatterns = [
     path('booking/complete/<int:pk>/', views.public_booking_complete, name='public_booking_complete'),
     path('booking/check/', views.public_booking_check, name='public_booking_check'),
     path('booking/<int:pk>/', views.public_booking_detail, name='public_booking_detail'),
+    path('clear-temp-image/', views.clear_temp_image, name='clear_temp_image'),
     
     # 管理者向け
     path('welcome/', views.welcome, name='welcome'),
