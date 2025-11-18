@@ -226,8 +226,41 @@
                     <div style="margin-bottom: 10px;">
                         <strong>アップロード済み:</strong> {{ temp_image_name }}
                     </div>
+                    
+                    {% if temp_image_name|slice:"-4:" == ".pdf" %}
+                    <!-- PDFの場合はCanvasで表示 -->
+                    <canvas id="session-pdf-canvas" style="max-width: 300px; max-height: 300px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></canvas>
+                    <script>
+                    (function() {
+                        const pdfData = atob('{{ temp_image_data }}');
+                        const typedarray = new Uint8Array(pdfData.length);
+                        for (let i = 0; i < pdfData.length; i++) {
+                            typedarray[i] = pdfData.charCodeAt(i);
+                        }
+                        
+                        pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                            pdf.getPage(1).then(function(page) {
+                                const canvas = document.getElementById('session-pdf-canvas');
+                                const context = canvas.getContext('2d');
+                                const scale = 1.5;
+                                const viewport = page.getViewport({ scale: scale });
+                                canvas.height = viewport.height;
+                                canvas.width = viewport.width;
+                                
+                                page.render({
+                                    canvasContext: context,
+                                    viewport: viewport
+                                });
+                            });
+                        });
+                    })();
+                    </script>
+                    {% else %}
+                    <!-- 画像の場合 -->
                     <img src="data:image/jpeg;base64,{{ temp_image_data }}" alt="プレビュー" 
                         style="max-width: 300px; max-height: 300px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    {% endif %}
+                    
                     <div style="margin-top: 10px;">
                         <button type="button" onclick="clearSessionImage()"
                             style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">

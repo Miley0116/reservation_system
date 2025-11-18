@@ -232,8 +232,39 @@
             <div class="info-item">
                 <div class="info-label">参考画像</div>
                 <div class="info-value">
+                    {% if reservation.reference_image.name|slice:"-4:" == ".pdf" %}
+                    <!-- PDFの場合 -->
+                    <canvas id="detail-pdf-canvas" style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 10px;"></canvas>
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+                    <script>
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    
+                    fetch('{{ reservation.reference_image.url }}')
+                        .then(response => response.arrayBuffer())
+                        .then(data => {
+                            const typedarray = new Uint8Array(data);
+                            pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                                pdf.getPage(1).then(function(page) {
+                                    const canvas = document.getElementById('detail-pdf-canvas');
+                                    const context = canvas.getContext('2d');
+                                    const scale = 1.5;
+                                    const viewport = page.getViewport({ scale: scale });
+                                    canvas.height = viewport.height;
+                                    canvas.width = viewport.width;
+                                    
+                                    page.render({
+                                        canvasContext: context,
+                                        viewport: viewport
+                                    });
+                                });
+                            });
+                        });
+                    </script>
+                    {% else %}
+                    <!-- 画像の場合 -->
                     <img src="{{ reservation.reference_image.url }}" alt="参考画像" 
                         style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 10px;">
+                    {% endif %}
                 </div>
             </div>
             {% endif %}
