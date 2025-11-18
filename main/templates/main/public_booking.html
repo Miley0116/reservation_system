@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>予約フォーム</title>
+
+    <!-- PDF.jsのCDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
     <style>
         * {
             margin: 0;
@@ -266,16 +272,55 @@
                 <script>
                 document.getElementById('reference_image').addEventListener('change', function(e) {
                     const file = e.target.files[0];
-                    if (file && file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            document.getElementById('preview-image').src = e.target.result;
-                            document.getElementById('preview-filename').textContent = file.name;
-                            document.getElementById('new-image-preview').style.display = 'block';
-                            const sessionPreview = document.getElementById('session-preview');
-                            if (sessionPreview) sessionPreview.style.display = 'none';
-                        };
-                        reader.readAsDataURL(file);
+                    if (file) {
+                        // 画像ファイルの場合
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                document.getElementById('preview-image').src = e.target.result;
+                                document.getElementById('preview-filename').textContent = file.name;
+                                document.getElementById('new-image-preview').style.display = 'block';
+                                const sessionPreview = document.getElementById('session-preview');
+                                if (sessionPreview) sessionPreview.style.display = 'none';
+                            };
+                            reader.readAsDataURL(file);
+                        } 
+                        // PDFファイルの場合
+                        else if (file.type === 'application/pdf') {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const typedarray = new Uint8Array(e.target.result);
+                                
+                                // PDF.jsでPDFを読み込み
+                                pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                                    // 最初のページを取得
+                                    pdf.getPage(1).then(function(page) {
+                                        const scale = 1.5;
+                                        const viewport = page.getViewport({ scale: scale });
+                                        
+                                        // Canvasを作成
+                                        const canvas = document.createElement('canvas');
+                                        const context = canvas.getContext('2d');
+                                        canvas.height = viewport.height;
+                                        canvas.width = viewport.width;
+                                        
+                                        // ページをCanvasに描画
+                                        page.render({
+                                            canvasContext: context,
+                                            viewport: viewport
+                                        }).promise.then(function() {
+                                            // CanvasをImageに変換して表示
+                                            document.getElementById('preview-image').src = canvas.toDataURL();
+                                            document.getElementById('preview-filename').textContent = file.name;
+                                            document.getElementById('new-image-preview').style.display = 'block';
+                                            const sessionPreview = document.getElementById('session-preview');
+                                            if (sessionPreview) sessionPreview.style.display = 'none';
+                                        });
+                                    });
+                                });
+                            };
+                            reader.readAsArrayBuffer(file);
+                        }
                     }
                 });
                 </script>
