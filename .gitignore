@@ -1,0 +1,34 @@
+# Python
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+*.log
+*.pot
+*.sqlite3
+db.sqlite3
+/media
+/staticfiles
+
+# 環境変数
+.env
+venv/
+env/
+
+# テストファイル・画像
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+test_*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
